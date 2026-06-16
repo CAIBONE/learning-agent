@@ -1,0 +1,84 @@
+# learning-profiles/<studentId>/plans/<subjectId>.yaml
+# 学习计划完整 YAML Schema 示例
+# 完整文档请参考 learning-plan/SKILL.md 中的排程算法和动态调整规则
+
+subjectId: "python-basics"
+studentId: "<studentId>"
+version: 1
+generatedAt: "2026-06-14T10:00:00+08:00"
+updatedAt: "2026-06-14T10:00:00+08:00"
+goalId: "goal-001"
+knowledgeTreeRef: "knowledge-trees/<studentId>/python-basics.yaml"
+
+# ─── 总体设置 ───
+schedule:
+  dailyMinutes: 60            # 每日学习时长（分钟）
+  weekendMinutes: 90          # 周末学习时长
+  pushTime: "09:00"           # 推送时间
+  reviewTime: "20:00"         # 复习提醒时间
+  bufferRatio: 0.2            # 缓冲时间比例（20%）
+  startDate: "2026-06-15"
+  deadline: "2026-08-01"
+  workdayPattern: "1-5"       # 工作日（周一到周五）
+  weekendPattern: "6"         # 周末（周六）
+
+# ─── 学习会话列表 ───
+sessions:
+  - sessionId: "sess-001"
+    nodeId: "mod-01-01"
+    nodeTitle: "变量与数据类型"
+    type: "learn"              # learn / review / quiz / milestone
+    scheduledDate: "2026-06-15"
+    scheduledTime: "09:00"
+    estimatedMinutes: 45
+    status: "scheduled"        # scheduled / delivered / completed / skipped / overdue
+    priority: 1                # 1=最高
+    prerequisites: []
+    reviewCount: 0             # 已复习次数
+    completedAt: null
+    actualMinutes: null
+    selfRating: null
+    notes: ""
+
+  - sessionId: "sess-002"
+    nodeId: "mod-01-01"
+    nodeTitle: "变量与数据类型（复习1）"
+    type: "review"
+    scheduledDate: "2026-06-16"
+    scheduledTime: "20:00"
+    estimatedMinutes: 15
+    status: "scheduled"
+    priority: 2
+    prerequisites: ["sess-001"]
+    reviewCount: 0
+    completedAt: null
+    actualMinutes: null
+    selfRating: null
+    notes: "艾宾浩斯第1次复习"
+
+  # ... 更多 sessions 按排程算法生成
+
+# ─── 里程碑 ───
+milestones:
+  - milestoneId: "ms-001"
+    name: "基础语法完成"
+    afterSessionId: "sess-010"
+    type: "quiz"               # quiz / assessment / checkpoint
+    scheduledDate: "2026-06-25"
+    status: "pending"
+
+# ─── 调整日志 ───
+adjustments:
+  - adjustmentId: "adj-001"
+    date: "2026-06-20"
+    reason: "测验成绩低于预期"
+    triggerType: "quiz_result"  # quiz_result / weekly_review / user_feedback / manual
+    changes:
+      - type: "insert_remedial"  # insert_remedial / reschedule / modify_time / skip_review / change_deadline
+        description: "在 sess-005 后插入补救学习"
+        affectedSessions: ["sess-006", "sess-007"]
+        reason: "mod-01-03 掌握度仅 35%"
+      - type: "reschedule"
+        description: "后续 sessions 顺延 2 天"
+    newDeadline: "2026-08-03"   # 如果截止日期有变化
+    notifiedAt: "2026-06-20T14:30:00+08:00"

@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Knowledge Tree",
+  "description": "A hierarchical knowledge tree for a learning subject",
+  "type": "object",
+  "required": ["subjectId", "studentId", "title", "nodes"],
+  "properties": {
+    "subjectId": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique slug for the subject"
+    },
+    "studentId": {
+      "type": "string",
+      "description": "Student identifier"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "totalNodes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "estimatedTotalMinutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/treeNode"
+      }
+    }
+  },
+  "definitions": {
+    "treeNode": {
+      "type": "object",
+      "required": ["nodeId", "title", "description", "level", "prerequisites", "estimatedMinutes", "children"],
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique node identifier within the tree"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Depth level: 0=root module, 1=sub-module, 2=knowledge point, 3=detail"
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of nodeIds that must be learned before this node"
+        },
+        "estimatedMinutes": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 120
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/treeNode"
+          }
+        }
+      }
+    }
+  }
+}

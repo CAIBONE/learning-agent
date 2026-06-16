@@ -1,0 +1,55 @@
+{
+  "_comment": "飞书消息卡片模板 — 学习内容推送",
+  "_usage": "替换 [方括号] 中的占位符后通过 feishu_im_user_message 发送",
+
+  "config": {
+    "wide_screen_mode": true
+  },
+  "header": {
+    "title": {
+      "tag": "plain_text",
+      "content": "新学习内容"
+    },
+    "template": "blue"
+  },
+  "elements": [
+    {
+      "tag": "div",
+      "text": {
+        "tag": "lark_md",
+        "content": "**科目：** [科目名]\n**节点：** [节点标题]\n**预计用时：** [X] 分钟\n\n[点击打开文档](文档URL)"
+      }
+    },
+    {
+      "tag": "action",
+      "actions": [
+        {
+          "tag": "button",
+          "text": {
+            "tag": "plain_text",
+            "content": "已完成"
+          },
+          "type": "primary",
+          "value": {
+            "action": "mark_completed",
+            "sessionId": "[sessionId]",
+            "nodeId": "[nodeId]"
+          }
+        },
+        {
+          "tag": "button",
+          "text": {
+            "tag": "plain_text",
+            "content": "有疑问"
+          },
+          "type": "default",
+          "value": {
+            "action": "ask_question",
+            "sessionId": "[sessionId]",
+            "nodeId": "[nodeId]"
+          }
+        }
+      ]
+    }
+  ]
+}

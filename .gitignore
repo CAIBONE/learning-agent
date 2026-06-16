@@ -1,0 +1,30 @@
+# OpenClaw Agent - Intelligent Learning Assistant
+
+# Sensitive / runtime files
+*.secret
+*.key
+*.pem
+.env.local
+
+# Agent state (per-machine, not portable)
+sessions/
+cache/
+memory/2026-*.md
+progress/
+learning-profiles/
+knowledge-trees/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Secrets in config - use .env or secrets manager instead
+# openclaw.json is NOT included - it contains credentials
