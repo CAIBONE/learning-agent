@@ -30,7 +30,7 @@ learning-agent/
 ├── setup.sh                      # 一键部署脚本
 ├── openclaw-config-patch.json    # 配置模板（不含密钥）
 ├── docs/
-│   ├── DEPLOY-PROMPT.md          # ⭐ AI 工具部署提示词（喂给 AI 即可自动部署）
+│   ├── DEPLOY-PROMPT.md          # AI 工具部署提示词（喂给 AI 即可自动部署）
 │   ├── USAGE.md                  # 使用指南
 ├── agent/
 │   ├── agent.json                # Agent 元数据配置
