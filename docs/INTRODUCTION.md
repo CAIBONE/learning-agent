@@ -194,7 +194,7 @@ AI 工具自动部署详见 `docs/DEPLOY-PROMPT.md`，将提示词复制到 Open
 
 源码地址：https://github.com/CAIBONE/learning-agent
 
-相关生成结果地址（内含学习材料）：
+相关生成结果样例地址（内含学习材料）：
 
 学习项目主页：https://my.feishu.cn/docx/BpM3d9NQxoKRFtxmm7lcirYTnoh
 
