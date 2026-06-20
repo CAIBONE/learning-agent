@@ -113,6 +113,17 @@ description: "Generate quiz questions, dispatch to independent Audit Agent for q
 
 这是关键步骤——**自己出题不能自己审**。Audit Agent 在独立上下文中重新求解每道题，验证答案正确性。
 
+**审计前告知用户**："开始审计，预计需要 5-10 分钟，请稍候"
+
+调用方式（同步阻塞）：
+```json
+sessions_send({
+  "agentId": "intelligent-learning-audit",
+  "message": "审计类型: quiz\n目标: <nodeId>\n学生: <studentId>\n生成物:\n<完整题目集（含答案和解析）>",
+  "timeoutSeconds": 600
+})
+```
+
 派发内容：
 ```yaml
 auditType: "quiz"
@@ -121,16 +132,16 @@ studentId: "<studentId>"
 artifact: "<生成的完整题目集（含答案和解析）>"
 ```
 
-**不传递**：出题推理过程、选题逻辑、对话历史。Audit Agent 自己读取 quiz-results、wrong-answers、session-notes 等数据文件。
+**不传递**：出题推理过程、选题逻辑、对话历史。
 
 审计结果处理：
 - **verdict = "passed"** → 进入交互答题流程
 - **verdict = "passed_with_notes"** → 进入交互答题流程，附带 soft 建议标记
-- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新派发审计
+- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
 - **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
-- **Audit Agent 不可用** → 降级为本地审计，记录降级事件
+- **超时或 Audit Agent 不可用** → 降级为本地审计，记录降级事件
 
-审计结果保存到 `progress/<studentId>/audit/quiz-<nodeId>-<timestamp>.json`
+审计结果保存到 `data/<studentId>/audit/quiz-<nodeId>-<timestamp>.json`
 
 ## 交互答题流程
 

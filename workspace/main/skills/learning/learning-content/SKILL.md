@@ -129,6 +129,17 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 **将生成物派发给独立的 Audit Agent 进行审计。**
 
+**审计前告知用户**："开始审计，预计需要 5-10 分钟，请稍候"
+
+调用方式（同步阻塞）：
+```json
+sessions_send({
+  "agentId": "intelligent-learning-audit",
+  "message": "审计类型: content\n目标: <nodeId>\n学生: <studentId>\n生成物:\n<artifact内容>",
+  "timeoutSeconds": 600
+})
+```
+
 派发内容：
 ```yaml
 auditType: "content"
@@ -137,16 +148,16 @@ studentId: "<studentId>"
 artifact: "<生成的完整学习内容>"
 ```
 
-**不传递**：生成推理过程、自适应分析结论、对话历史。Audit Agent 自己读取数据文件。
+**不传递**：生成推理过程、自适应分析结论、对话历史。
 
 审计结果处理：
 - **verdict = "passed"** → 进入第 7 步（写飞书文档）
 - **verdict = "passed_with_notes"** → 进入第 7 步，推送时附带 soft 建议标记
-- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新派发审计
+- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
 - **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
-- **Audit Agent 不可用** → 降级为本地审计（在同一上下文中执行检查项 1-7），记录降级事件
+- **超时或 Audit Agent 不可用** → 降级为本地审计（在同一上下文中执行检查项 1-7），记录降级事件
 
-审计结果保存到 `progress/<studentId>/audit/content-<nodeId>-<timestamp>.json`
+审计结果保存到 `data/<studentId>/audit/content-<nodeId>-<timestamp>.json`
 
 ### 第 7 步：写入飞书文档（必须执行）
 

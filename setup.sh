@@ -1,82 +1,125 @@
 #!/usr/bin/env bash
-# Intelligent Learning Assistant - OpenClaw Agent Setup Script
-# Usage: bash setup.sh [agent-id]
-# Default agent-id: intelligent-learning-assistant
+# Intelligent Learning Assistant - OpenClaw Dual Agent Setup Script
+# Usage: bash setup.sh
+# Sets up both Main Agent and Audit Agent
 
 set -euo pipefail
 
-AGENT_ID="${1:-intelligent-learning-assistant}"
-AGENT_DIR="$HOME/.openclaw/agents/$AGENT_ID"
-WORKSPACE_DIR="$HOME/.openclaw/workspace-$AGENT_ID"
+MAIN_AGENT_ID="intelligent-learning-assistant"
+AUDIT_AGENT_ID="intelligent-learning-audit"
+
+MAIN_AGENT_DIR="$HOME/.openclaw/agents/$MAIN_AGENT_ID"
+AUDIT_AGENT_DIR="$HOME/.openclaw/agents/$AUDIT_AGENT_ID"
+
+MAIN_WORKSPACE_DIR="$HOME/.openclaw/workspace-main"
+AUDIT_WORKSPACE_DIR="$HOME/.openclaw/workspace-audit"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "========================================="
 echo " Intelligent Learning Assistant Setup"
+echo " Dual Agent Architecture"
 echo "========================================="
 echo ""
-echo "Agent ID:    $AGENT_ID"
-echo "Agent Dir:   $AGENT_DIR"
-echo "Workspace:   $WORKSPACE_DIR"
+echo "Main Agent:  $MAIN_AGENT_ID"
+echo "  Agent Dir: $MAIN_AGENT_DIR"
+echo "  Workspace: $MAIN_WORKSPACE_DIR"
+echo ""
+echo "Audit Agent: $AUDIT_AGENT_ID"
+echo "  Agent Dir: $AUDIT_AGENT_DIR"
+echo "  Workspace: $AUDIT_WORKSPACE_DIR"
 echo ""
 
 # Step 1: Create directories
-echo "[1/6] Creating directories..."
-mkdir -p "$AGENT_DIR/agent"
-mkdir -p "$WORKSPACE_DIR/skills/learning"
-mkdir -p "$WORKSPACE_DIR/templates"
-mkdir -p "$WORKSPACE_DIR/knowledge-trees"
-mkdir -p "$WORKSPACE_DIR/learning-profiles"
-mkdir -p "$WORKSPACE_DIR/progress"
-mkdir -p "$WORKSPACE_DIR/memory"
-mkdir -p "$WORKSPACE_DIR/artifacts"
+echo "[1/7] Creating directories..."
+mkdir -p "$MAIN_AGENT_DIR/agent"
+mkdir -p "$AUDIT_AGENT_DIR/agent"
+mkdir -p "$MAIN_WORKSPACE_DIR/skills/learning"
+mkdir -p "$MAIN_WORKSPACE_DIR/templates"
+mkdir -p "$MAIN_WORKSPACE_DIR/data"
+mkdir -p "$AUDIT_WORKSPACE_DIR/skills/learning"
 
-# Step 2: Copy agent files
-echo "[2/6] Copying agent files..."
-if [ -f "$SCRIPT_DIR/agent/agent.json" ]; then
-    cp "$SCRIPT_DIR/agent/agent.json" "$AGENT_DIR/agent/agent.json"
-    echo "  ✓ agent.json"
+# Step 2: Copy Main Agent files
+echo "[2/7] Copying Main Agent files..."
+if [ -f "$SCRIPT_DIR/agent/main/agent.json" ]; then
+    cp "$SCRIPT_DIR/agent/main/agent.json" "$MAIN_AGENT_DIR/agent/agent.json"
+    echo "  ✓ agent/main/agent.json"
 fi
-if [ -f "$SCRIPT_DIR/agent/SKILL.md" ]; then
-    cp "$SCRIPT_DIR/agent/SKILL.md" "$AGENT_DIR/agent/SKILL.md"
-    echo "  ✓ SKILL.md"
+if [ -f "$SCRIPT_DIR/agent/main/SKILL.md" ]; then
+    cp "$SCRIPT_DIR/agent/main/SKILL.md" "$MAIN_AGENT_DIR/agent/SKILL.md"
+    echo "  ✓ agent/main/SKILL.md"
 fi
 
-# Step 3: Copy workspace files
-echo "[3/6] Copying workspace files..."
-if [ -f "$SCRIPT_DIR/workspace/IDENTITY.md" ]; then
-    cp "$SCRIPT_DIR/workspace/IDENTITY.md" "$WORKSPACE_DIR/IDENTITY.md"
+# Step 3: Copy Audit Agent files
+echo "[3/7] Copying Audit Agent files..."
+if [ -f "$SCRIPT_DIR/agent/audit/agent.json" ]; then
+    cp "$SCRIPT_DIR/agent/audit/agent.json" "$AUDIT_AGENT_DIR/agent/agent.json"
+    echo "  ✓ agent/audit/agent.json"
+fi
+if [ -f "$SCRIPT_DIR/agent/audit/SKILL.md" ]; then
+    cp "$SCRIPT_DIR/agent/audit/SKILL.md" "$AUDIT_AGENT_DIR/agent/SKILL.md"
+    echo "  ✓ agent/audit/SKILL.md"
+fi
+
+# Step 4: Copy Main workspace files
+echo "[4/7] Copying Main workspace files..."
+if [ -f "$SCRIPT_DIR/workspace/main/IDENTITY.md" ]; then
+    cp "$SCRIPT_DIR/workspace/main/IDENTITY.md" "$MAIN_WORKSPACE_DIR/IDENTITY.md"
     echo "  ✓ IDENTITY.md"
 fi
-if [ -f "$SCRIPT_DIR/workspace/SOUL.md" ]; then
-    cp "$SCRIPT_DIR/workspace/SOUL.md" "$WORKSPACE_DIR/SOUL.md"
+if [ -f "$SCRIPT_DIR/workspace/main/SOUL.md" ]; then
+    cp "$SCRIPT_DIR/workspace/main/SOUL.md" "$MAIN_WORKSPACE_DIR/SOUL.md"
     echo "  ✓ SOUL.md"
 fi
 
-# Step 4: Copy skills
-echo "[4/6] Copying skills..."
-if [ -d "$SCRIPT_DIR/workspace/skills/learning" ]; then
-    cp -r "$SCRIPT_DIR/workspace/skills/learning"/* "$WORKSPACE_DIR/skills/learning/"
-    echo "  ✓ $(ls "$WORKSPACE_DIR/skills/learning/" | wc -l) skills copied"
+# Step 5: Copy skills
+echo "[5/7] Copying skills..."
+# Main Agent skills (10 skills)
+if [ -d "$SCRIPT_DIR/workspace/main/skills/learning" ]; then
+    for skill_dir in "$SCRIPT_DIR/workspace/main/skills/learning"/*/; do
+        skill_name=$(basename "$skill_dir")
+        if [ "$skill_name" != "learning-audit" ]; then
+            mkdir -p "$MAIN_WORKSPACE_DIR/skills/learning/$skill_name"
+            cp -r "$skill_dir"* "$MAIN_WORKSPACE_DIR/skills/learning/$skill_name/"
+        fi
+    done
+    echo "  ✓ Main Agent: $(ls "$MAIN_WORKSPACE_DIR/skills/learning/" | wc -l) skills"
 fi
 
-# Step 5: Copy templates
-echo "[5/6] Copying templates..."
-if [ -d "$SCRIPT_DIR/workspace/templates" ]; then
-    cp -r "$SCRIPT_DIR/workspace/templates"/* "$WORKSPACE_DIR/templates/"
-    echo "  ✓ $(ls "$WORKSPACE_DIR/templates/" | wc -l) templates copied"
+# Audit Agent skills (1 skill)
+if [ -d "$SCRIPT_DIR/workspace/audit/skills/learning/learning-audit" ]; then
+    mkdir -p "$AUDIT_WORKSPACE_DIR/skills/learning/learning-audit"
+    cp -r "$SCRIPT_DIR/workspace/audit/skills/learning/learning-audit"/* "$AUDIT_WORKSPACE_DIR/skills/learning/learning-audit/"
+    echo "  ✓ Audit Agent: 1 skill (learning-audit)"
 fi
 
-# Step 6: Register agent with OpenClaw CLI
-echo "[6/6] Registering agent..."
+# Step 6: Copy templates
+echo "[6/7] Copying templates..."
+if [ -d "$SCRIPT_DIR/workspace/main/templates" ]; then
+    cp -r "$SCRIPT_DIR/workspace/main/templates"/* "$MAIN_WORKSPACE_DIR/templates/"
+    echo "  ✓ $(ls "$MAIN_WORKSPACE_DIR/templates/" | wc -l) templates"
+fi
+
+# Step 7: Register agents with OpenClaw CLI
+echo "[7/7] Registering agents..."
 if command -v openclaw &>/dev/null; then
-    openclaw agents add "$AGENT_ID" \
-        --workspace "$WORKSPACE_DIR" \
-        --agent-dir "$AGENT_DIR/agent" \
+    # Register Main Agent
+    openclaw agents add "$MAIN_AGENT_ID" \
+        --workspace "$MAIN_WORKSPACE_DIR" \
+        --agent-dir "$MAIN_AGENT_DIR/agent" \
         --non-interactive --json 2>/dev/null || true
-    echo "  ✓ Agent registered"
+    echo "  ✓ Main Agent registered"
+
+    # Register Audit Agent
+    openclaw agents add "$AUDIT_AGENT_ID" \
+        --workspace "$AUDIT_WORKSPACE_DIR" \
+        --agent-dir "$AUDIT_AGENT_DIR/agent" \
+        --non-interactive --json 2>/dev/null || true
+    echo "  ✓ Audit Agent registered"
 else
-    echo "  ⚠ openclaw CLI not found, please register manually"
-    echo "    openclaw agents add $AGENT_ID --workspace $WORKSPACE_DIR --agent-dir $AGENT_DIR/agent"
+    echo "  ⚠ openclaw CLI not found, please register manually:"
+    echo "    openclaw agents add $MAIN_AGENT_ID --workspace $MAIN_WORKSPACE_DIR --agent-dir $MAIN_AGENT_DIR/agent"
+    echo "    openclaw agents add $AUDIT_AGENT_ID --workspace $AUDIT_WORKSPACE_DIR --agent-dir $AUDIT_AGENT_DIR/agent"
 fi
 
 echo ""
@@ -84,21 +127,20 @@ echo "========================================="
 echo " Setup Complete!"
 echo "========================================="
 echo ""
+echo "Architecture:"
+echo "  Main Agent (学吧) → 10 skills → generates content"
+echo "       ↓ sessions_send (sync)"
+echo "  Audit Agent (审计官) → 1 skill → audits quality"
+echo ""
 echo "Next steps:"
-echo "1. Add feishu channel account in openclaw.json:"
-echo '   channels.feishu.accounts.intelligent-learning = { appId, appSecret, enabled: true, streaming: true }'
-echo "   ⚡ streaming: true — 开启流式输出，用户实时看到 Agent 回复"
-echo "2. Add binding:"
-echo "   bindings: [{ agentId: '$AGENT_ID', match: { channel: 'feishu', accountId: 'intelligent-learning' } }]"
+echo "1. Merge openclaw-config-patch.json into ~/.openclaw/openclaw.json"
+echo "   (contains both agents, bindings, channels config)"
+echo "2. Replace YOUR_APP_ID and YOUR_APP_SECRET with actual Feishu credentials"
 echo "3. Configure model (recommended: thinking/reasoning model):"
 echo "   agents.list[].model.primary = \"bailian-thinking/qwen3.7-plus\""
-echo "   学吧需要深度推理能力（知识图谱审计、题目验证、内容交叉验证等），强烈推荐使用推理模型"
 echo "4. Restart gateway:"
 echo "   openclaw gateway restart"
-echo "5. (Optional) Initialize Feishu sync:"
-echo "   In chat, ask the agent to '初始化飞书同步' to set up"
-echo "   knowledge base and bitable database."
 echo ""
-echo "📋 Full scope list: workspace/templates/feishu-scopes.json (180+ permissions)"
+echo "📋 Feishu scopes: workspace/main/templates/feishu-scopes.json"
 echo "🤖 AI tool deploy prompt: docs/DEPLOY-PROMPT.md"
 echo ""

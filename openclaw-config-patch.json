@@ -4,8 +4,8 @@
       {
         "id": "intelligent-learning-assistant",
         "name": "学吧",
-        "workspace": "../workspace-intelligent-learning-assistant",
-        "agentDir": "./intelligent-learning-assistant/agent",
+        "workspace": "../workspace/main",
+        "agentDir": "./agent/main",
         "skills": [
           "learning-core",
           "learning-goals",
@@ -13,21 +13,28 @@
           "learning-plan",
           "learning-content",
           "learning-quiz",
-          "learning-audit",
           "learning-reports",
           "learning-review",
           "learning-cron",
           "learning-feishu-sync"
         ],
         "tools": {
+          "subagents": {
+            "allowAgents": ["intelligent-learning-audit"]
+          },
           "alsoAllow": [
+            "sessions_send",
+            "cron_create",
+            "cron_update",
+            "cron_delete",
+            "cron_list",
+            "web_search",
+            "web_fetch",
             "feishu_bitable_app",
             "feishu_bitable_app_table",
             "feishu_bitable_app_table_field",
             "feishu_bitable_app_table_record",
             "feishu_bitable_app_table_view",
-            "feishu_bitable_dashboard",
-            "feishu_bitable_dashboard_block",
             "feishu_calendar_calendar",
             "feishu_calendar_event",
             "feishu_calendar_event_attendee",
@@ -59,6 +66,16 @@
             "feishu_wiki_space",
             "feishu_wiki_space_node"
           ]
+        }
+      },
+      {
+        "id": "intelligent-learning-audit",
+        "name": "学习审计 Agent",
+        "workspace": "../workspace/audit",
+        "agentDir": "./agent/audit",
+        "skills": ["learning-audit"],
+        "tools": {
+          "alsoAllow": []
         }
       }
     ]

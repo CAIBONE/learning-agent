@@ -94,6 +94,17 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 
 **将知识树派发给独立的 Audit Agent 进行审计。**
 
+**审计前告知用户**："开始审计，预计需要 5-10 分钟，请稍候"
+
+调用方式（同步阻塞）：
+```json
+sessions_send({
+  "agentId": "intelligent-learning-audit",
+  "message": "审计类型: knowledge_tree\n目标: <subjectId>\n学生: <studentId>\n生成物:\n<完整知识树 YAML>",
+  "timeoutSeconds": 600
+})
+```
+
 派发内容：
 ```yaml
 auditType: "knowledge_tree"
@@ -102,16 +113,14 @@ studentId: "<studentId>"
 artifact: "<完整的知识树 YAML>"
 ```
 
-Audit Agent 自己读取知识树 Schema、目标文件、session-notes 等进行独立审计。
-
 审计结果处理：
 - **verdict = "passed"** → 进入第 5 步
 - **verdict = "passed_with_notes"** → 进入第 5 步，展示时附带 soft 建议标记
-- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新派发审计
+- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
 - **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
-- **Audit Agent 不可用** → 降级为本地审计（执行 6 步验证清单），记录降级事件
+- **超时或 Audit Agent 不可用** → 降级为本地审计（执行 6 步验证清单），记录降级事件
 
-审计结果保存到 `progress/<studentId>/audit/knowledge-tree-<subjectId>-<timestamp>.json`
+审计结果保存到 `data/<studentId>/audit/knowledge-tree-<subjectId>-<timestamp>.json`
 
 ### 第 5 步：展示与确认
 向用户展示知识树概要（不是全部细节，而是结构）：

@@ -39,16 +39,15 @@ description: "Core intelligent learning assistant skill. Routing logic, multi-ag
 │                                                   │
 │  生成完成 → 写 session-notes → 派发审计 Agent       │
 └──────────────────────┬──────────────────────────┘
-                       │
+                       │ sessions_send（同步阻塞）
+                       │ timeoutSeconds: 600
                        ▼
          ┌──────────────────────────┐
          │   Audit Agent（独立上下文）│
          │   技能：learning-audit    │
          │                          │
          │   数据源：                │
-         │   • 生成物本身            │
-         │   • 学生数据文件（自读）   │
-         │   • session-notes.yaml   │
+         │   • 派发协议中的 artifact │
          │   • audit SKILL 检查清单  │
          └──────────────────────────┘
 ```
@@ -62,10 +61,22 @@ description: "Core intelligent learning assistant skill. Routing logic, multi-ag
 - `learning-knowledge-tree` 生成知识树后自己验证 → 同样的推理偏差会重复
 
 **审计 Agent 在独立上下文中运行**，看不到 Main Agent 的生成过程和推理，只看到：
-1. 最终生成物（内容/题目/知识树）
+1. 派发协议中的 artifact（内容/题目/知识树）
 2. 审计标准（audit SKILL 的检查清单）
-3. 学生数据文件（自己读）
-4. session-notes.yaml（对话中产生的关键信息）
+
+### 审计 Agent 调用方式
+
+Main Agent 通过 `sessions_send` **同步阻塞**调用 Audit Agent：
+
+```json
+sessions_send({
+  "agentId": "intelligent-learning-audit",
+  "message": "审计类型: content\n目标: <nodeId>\n学生: <studentId>\n生成物:\n<artifact内容>",
+  "timeoutSeconds": 600
+})
+```
+
+**审计前必须告知用户**："开始审计，预计需要 5-10 分钟，请稍候"
 
 ### 审计 Agent 派发协议
 
@@ -73,25 +84,15 @@ Main Agent 在生成物完成后，调用 Audit Agent 时传递以下信息：
 
 ```yaml
 # 派发给 Audit Agent 的参数
-auditType: "content"              # content | quiz | knowledge_tree
+auditType: "content"              # content | quiz | knowledge_tree | volume
 targetId: "mod-01-02"
 studentId: "<studentId>"
 artifact: "<生成物内容>"           # 最终的内容/题目/知识树 YAML
-
-# Main Agent 不需要组装 dataDerived 或 requirements
-# Audit Agent 自己读取以下文件：
-# - progress/<studentId>/session-notes.yaml
-# - progress/<studentId>/mastery.json
-# - progress/<studentId>/content-log.jsonl
-# - progress/<studentId>/quiz-results.jsonl
-# - knowledge-trees/<studentId>/<subjectId>.yaml
-# - learning-profiles/<studentId>/plans/<subjectId>.yaml
-# - learning-profiles/<studentId>/goals.yaml
 ```
 
 **派发原则：**
 - Main Agent **只传生成物本身**，不传生成过程的推理
-- Audit Agent **自主读取**所需的数据文件和 session-notes
+- Audit Agent 基于 artifact 和审计标准独立判断
 - 避免"喂结论"，让审计 Agent 独立判断
 
 ## Session Notes 机制

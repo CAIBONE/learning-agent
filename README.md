@@ -1,24 +1,38 @@
-﻿# 学吧 — AI 智能学习助手
+# 学吧 — AI 智能学习助手
 
 ## 定位
 
 帮助用户根据学习需求规划学习任务，生成学习内容，测验学习成果，生成复盘报表。支持考试备考、技能学习、语言学习等多种目标类型。
 
-## 核心能力（11 大 SKILL，多 Agent 架构）
+## 核心能力（双 Agent 架构）
+
+### Main Agent（学吧）— 10 个 Skill
 
 | # | SKILL | 说明 |
 |---|-------|------|
-| 1 | `learning-core` | 核心引擎 — 路由、多 Agent 架构、Session Notes 机制、闭环驱动、数据持久化、学生身份映射 |
+| 1 | `learning-core` | 核心引擎 — 路由、Session Notes 机制、闭环驱动、数据持久化、学生身份映射 |
 | 2 | `learning-goals` | 目标拆解 — **二分法自适应**（有标准型/无标准型）+ 项目引导 + 里程碑验收 |
 | 3 | `learning-knowledge-tree` | 知识图谱 — 三级结构 + **6 步语义验证** + JSON Schema 验证 → ⚡派发审计 |
 | 4 | `learning-plan` | 学习计划 — YAML Schema + 艾宾浩斯复习 + 量化动态调整 + 考前冲刺 |
 | 5 | `learning-content` | 内容生成 — 联网检索 + 深度教材 + 飞书文档 + 自适应策略 → ⚡派发审计 |
 | 6 | `learning-quiz` | 测验评估 — 5 种测验类型 + 题量评估算法 + 错题管理 → ⚡派发审计 |
-| 7 | `learning-audit` ⚡ | **独立审计 Agent** — 隔离上下文，独立质量检查（知识图谱/内容/题目） |
-| 8 | `learning-review` | 学习复盘 — 独立复盘模块，数据→洞察→行动 |
-| 9 | `learning-reports` | 可视化报表 — 引用飞书多维表格 Dashboard（折线图/柱状图/饼图）+ 聊天摘要 |
-| 10 | `learning-cron` | 定时任务 — **多学生隔离** + 创建/更新/删除自动化 cron 任务 |
-| 11 | `learning-feishu-sync` | 飞书同步 — 知识库备份 + 多维表格数据库 + 视图/仪表盘创建维护 |
+| 7 | `learning-review` | 学习复盘 — 独立复盘模块，数据→洞察→行动 |
+| 8 | `learning-reports` | 可视化报表 — 引用飞书多维表格 Dashboard（折线图/柱状图/饼图）+ 聊天摘要 |
+| 9 | `learning-cron` | 定时任务 — **多学生隔离** + 创建/更新/删除自动化 cron 任务 |
+| 10 | `learning-feishu-sync` | 飞书同步 — 知识库备份 + 多维表格数据库 + 视图/仪表盘创建维护 |
+
+### Audit Agent（审计官）— 1 个 Skill
+
+| # | SKILL | 说明 |
+|---|-------|------|
+| 1 | `learning-audit` ⚡ | **独立审计 Agent** — 隔离上下文，同步阻塞调用，独立质量检查（知识图谱/内容/题目/学习量） |
+
+### 跨 Agent 调用机制
+
+- **Main Agent** 通过 `sessions_send`（同步阻塞）调用 **Audit Agent**
+- `timeoutSeconds: 600`（10 分钟），审计期间 Main Agent 等待结果
+- 审计结果自动返回 Main Agent，Main Agent 根据 verdict 决定是否修复重试
+- 重试上限 3 次，超过则提交用户裁决
 
 ## 目录结构
 
@@ -27,36 +41,48 @@ learning-agent/
 ├── README.md                     # 本文件
 ├── AGENTS.md                     # Agent 工作区规范
 ├── .gitignore
-├── setup.sh                      # 一键部署脚本
-├── openclaw-config-patch.json    # 配置模板（不含密钥）
+├── setup.sh                      # 一键部署脚本（双 Agent）
+├── openclaw-config-patch.json    # 配置模板（双 Agent + subagents 权限）
 ├── docs/
-│   ├── DEPLOY-PROMPT.md          # AI 工具部署提示词（喂给 AI 即可自动部署）
+│   ├── DEPLOY-PROMPT.md          # AI 工具部署提示词
 │   ├── USAGE.md                  # 使用指南
+│   └── INTRODUCTION.md           # 项目介绍
 ├── agent/
-│   ├── agent.json                # Agent 元数据配置
-│   └── SKILL.md                  # 技能路由（人格由 SOUL.md 定义）
+│   ├── main/                     # Main Agent（学吧）
+│   │   ├── agent.json            # Agent 元数据（10 skills + sessions_send）
+│   │   └── SKILL.md              # 技能路由入口
+│   └── audit/                    # Audit Agent（审计官）
+│       ├── agent.json            # Agent 元数据（1 skill）
+│       └── SKILL.md              # 审计入口 + 派发协议
 └── workspace/
-    ├── IDENTITY.md             # Agent 身份定义
-    ├── SOUL.md                 # Agent 人格、教学风格、首次回复规则
-    ├── templates/              # 独立模板文件（从 SKILL.md 拆出）
-    │   ├── plan-schema.yaml        # 学习计划完整 YAML Schema 示例
-    │   ├── content-template.md     # 学习内容格式模板
-    │   ├── session-notes-template.yaml  # 对话笔记模板（审计 + 上下文恢复）
-    │   ├── message-card.json       # 飞书消息卡片 JSON 模板
-    │   └── feishu-scopes.json      # 飞书 OAuth 完整权限范围（180+ scope）
-    └── skills/
-        └── learning/
-            ├── learning-core/          # 核心引擎（多 Agent 架构 + Session Notes）
-            ├── learning-goals/         # 学习目标管理（含飞书权限预检）
-            ├── learning-knowledge-tree/# 知识图谱（含 6 步语义验证 → ⚡派发审计）
-            ├── learning-plan/          # 学习计划（含动态调整 + 量化算法）
-            ├── learning-content/       # 内容生成与推送（→ ⚡派发审计）
-            ├── learning-quiz/          # 测验评估（→ ⚡派发审计）
-            ├── learning-audit/         # ⚡独立审计 Agent（隔离上下文）
-            ├── learning-reports/       # 可视化报表（飞书多维表格）
-            ├── learning-review/        # 学习复盘（独立模块）
-            ├── learning-cron/          # 定时任务管理（多学生隔离）
-            └── learning-feishu-sync/   # 飞书知识库+多维表格同步
+    ├── main/                     # Main Agent 专属 workspace
+    │   ├── IDENTITY.md           # Agent 身份定义
+    │   ├── SOUL.md               # Agent 人格、教学风格、首次回复规则
+    │   ├── data/                 # 学生数据（profile/progress/audit 记录）
+    │   ├── templates/            # 模板文件
+    │   │   ├── plan-schema.yaml
+    │   │   ├── content-template.md
+    │   │   ├── session-notes-template.yaml
+    │   │   ├── message-card.json
+    │   │   └── feishu-scopes.json
+    │   └── skills/
+    │       └── learning/
+    │           ├── learning-core/
+    │           ├── learning-goals/
+    │           ├── learning-knowledge-tree/
+    │           ├── learning-plan/
+    │           ├── learning-content/
+    │           ├── learning-quiz/
+    │           ├── learning-reports/
+    │           ├── learning-review/
+    │           ├── learning-cron/
+    │           └── learning-feishu-sync/
+    └── audit/                    # Audit Agent 专属 workspace
+        ├── IDENTITY.md           # 审计官身份
+        ├── SOUL.md               # 审计官人格
+        └── skills/
+            └── learning/
+                └── learning-audit/   # 审计技能
 ```
 
 ## 前置依赖
@@ -73,13 +99,12 @@ learning-agent/
 
 ### 方式一：让 AI 工具自动部署（推荐）
 
-> 将下方整段提示词复制到  Openclaw / Hermes Agent  的聊天框，AI 会自主完成全部部署。
+> 将下方整段提示词复制到 OpenClaw / Hermes Agent 的聊天框，AI 会自主完成全部部署。
 
 ```
 请读取 https://github.com/CAIBONE/learning-agent/blob/main/docs/DEPLOY-PROMPT.md 中的四段式部署指令（前置依赖 → 拉取项目 → 执行动作 → 注意事项），并按步骤自动完成部署。
 
 推荐接入推理模型。
-
 ```
 
 ### 方式二：使用部署脚本
@@ -92,23 +117,29 @@ cd learning-agent
 bash setup.sh
 ```
 
-> 脚本自动完成 Agent 注册和文件复制，但仍需手动配置飞书凭证和模型（参见 `docs/DEPLOY-PROMPT.md`）。
+> 脚本自动完成双 Agent 注册和文件复制，但仍需手动配置飞书凭证和模型。
 
 ### 方式三：手动部署
 
 ```bash
-# 1. 复制 Agent 文件
-cp -r agent/ ~/.openclaw/agents/intelligent-learning-assistant/
+# 1. 复制 Main Agent
+cp -r agent/main/ ~/.openclaw/agents/intelligent-learning-assistant/
 
-# 2. 复制 Workspace 文件
-cp -r workspace/ ~/.openclaw/workspace-intelligent-learning-assistant/
+# 2. 复制 Audit Agent
+cp -r agent/audit/ ~/.openclaw/agents/intelligent-learning-audit/
 
-# 3. 在 openclaw.json 中添加 Agent（参考 openclaw-config-patch.json）
+# 3. 复制 Main workspace
+cp -r workspace/main/ ~/.openclaw/workspace-main/
+
+# 4. 复制 Audit workspace
+cp -r workspace/audit/ ~/.openclaw/workspace-audit/
+
+# 5. 合并 openclaw-config-patch.json 到 ~/.openclaw/openclaw.json
 ```
 
 ### 接入飞书渠道
 
-在 `openclaw.json` 中添加：
+在 `openclaw.json` 中添加（参考 `openclaw-config-patch.json`）：
 
 ```json
 {
@@ -139,7 +170,7 @@ cp -r workspace/ ~/.openclaw/workspace-intelligent-learning-assistant/
 }
 ```
 
-> **重要**：`streaming: true` 开启流式输出，用户可实时看到 Agent 回复，体验显著改善。`ownerOnly: false` 允许多人使用，学吧支持多用户。
+> **重要**：`streaming: true` 开启流式输出，用户可实时看到 Agent 回复。只有 Main Agent 绑定飞书渠道，Audit Agent 通过 `sessions_send` 被 Main Agent 调用。
 
 ### 配置模型
 
@@ -159,8 +190,6 @@ cp -r workspace/ ~/.openclaw/workspace-intelligent-learning-assistant/
 }
 ```
 
-> `learning-audit` 和 `learning-quiz` 两个技能必须使用推理模型，否则会出现"自己出题自己错"的问题。
-
 然后重启网关：
 
 ```bash
@@ -171,11 +200,9 @@ openclaw gateway restart
 
 部署完成后，在飞书对话中对 Agent 说"我想学 XXX"，Agent 会：
 1. 捕获学习目标
-2. **一次性申请全部飞书权限**（完整 scope 清单见 `workspace/templates/feishu-scopes.json`，涵盖文档/多维表格/知识库/云空间/消息/通讯录/日历/任务等 180+ scope）
+2. 一次性申请飞书权限（完整 scope 清单见 `workspace/main/templates/feishu-scopes.json`）
 3. 初始化飞书知识库空间和多维表格数据库
 4. 生成知识图谱和学习计划
-
-> 飞书权限在项目创建时一次性申请，后续使用中不再重复请求授权。
 
 ## 飞书多维表格数据库
 
@@ -189,13 +216,13 @@ openclaw gateway restart
 | 错题本表 | 错题管理 + 间隔复习计划 |
 | 掌握度追踪表 | 掌握度时间序列（趋势图数据源）|
 
-报表利用多维表格内置图表功能（折线图/柱状图/饼图/看板）生成 Dashboard，初始化时自动创建 7 个命名视图 + 1 个仪表盘。
+报表利用多维表格内置图表功能生成 Dashboard。
 
 ## 配置要求
 
-- **模型**: 推荐使用推理模型（`"reasoning": true`），在 openclaw.json 中配置
+- **模型**: 推荐使用推理模型（`"reasoning": true`）
 - **流式输出**: 飞书渠道必须开启 `streaming: true`
-- **工具**: 飞书全套工具（文档、多维表格、知识库、消息、日历、任务等）
+- **工具**: 飞书全套工具 + `sessions_send`（跨 Agent 调用）
 - **渠道**: 飞书 WebSocket 长连接
 
 ## 使用指南

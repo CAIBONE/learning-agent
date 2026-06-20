@@ -42,13 +42,16 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │              学吧 Main Agent                      │
+│  (intelligent-learning-assistant)                │
 │  内置 10 个 Skill，保持对话历史，负责生成和交互      │
 │  生成完成 → 写 session-notes → 派发 Audit Agent    │
 └──────────────────────┬──────────────────────────┘
-                       │
+                       │ 跨 Agent 调用
                        ▼
          ┌──────────────────────────┐
-         │   Audit Agent（独立上下文）│
+         │   Audit Agent             │
+         │   (intelligent-learning-audit)
+         │   独立上下文              │
          │   看不到生成推理过程       │
          │   自主读取数据文件审计      │
          └──────────────────────────┘
@@ -56,7 +59,26 @@
 
 **为什么要拆**：既当运动员又当裁判会出问题。Audit Agent 在独立上下文中运行，只看到生成物、数据文件和 session-notes，确保审计客观性。
 
+**Agent 配置**：
+- Main Agent: `agent/agent.json` — 加载 10 个 skill（不含 learning-audit）
+- Audit Agent: `audit-agent/agent.json` — 只加载 learning-audit
+
+**派发协议**：
+
+Main Agent 生成完成后，向 Audit Agent 发送：
+
+```yaml
+auditType: "content | quiz | knowledge_tree | volume"
+targetId: "<nodeId 或 subjectId>"
+studentId: "<studentId>"
+artifact: "<生成物的完整内容>"
+```
+
+**不传递**：生成推理过程、Main Agent 的自适应分析结论、对话历史。
+
 **Session Notes**：对话中产生的关键信息（用户偏好、纠错、状态变化）持久化到 `session-notes.yaml`，供 Audit Agent 审计和下次会话恢复上下文。
+
+**OpenClaw 配置**：需要在 `openclaw.json` 中注册两个 Agent，详见 `docs/DEPLOY-PROMPT.md`。
 
 ## 补充能力
 
