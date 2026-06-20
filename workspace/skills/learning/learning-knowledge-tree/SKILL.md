@@ -1,6 +1,6 @@
 ---
 name: learning-knowledge-tree
-description: "Generate, edit, and manage knowledge trees and frameworks for any subject. Creates hierarchical YAML structures with semantic validation and audit before saving."
+description: "Generate, edit, and manage knowledge trees and frameworks for any subject. Creates hierarchical YAML structures with semantic validation and independent audit by Audit Agent before saving."
 ---
 
 # Learning Knowledge Tree — 知识树管理
@@ -16,17 +16,19 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 - 知识树文件：`knowledge-trees/<studentId>/<subjectId>.yaml`
 - 目标文件：`learning-profiles/<studentId>/goals.yaml`
 - Schema 验证：`schemas/knowledge-tree.schema.json`
+- **对话笔记**：`progress/<studentId>/session-notes.yaml`
 - `<studentId>` 从对话上下文或 profile 路径推断
 
 ## 知识树生成流程
 
 ### 第 1 步：分析目标
-读取对应学生的 `goals.yaml`，理解：
-- 学习科目和范围
-- 目标类型（有标准型 benchmarked / 无标准型 unbenchmarked）
-- 有标准型：考试日期 / 目标分数 / 考纲
-- 无标准型：里程碑列表 + 各里程碑 targetDate + 期望 proficiency 水平
-- 用户当前基础
+1. 读取对应学生的 `goals.yaml`，理解：
+   - 学习科目和范围
+   - 目标类型（有标准型 benchmarked / 无标准型 unbenchmarked）
+   - 有标准型：考试日期 / 目标分数 / 考纲
+   - 无标准型：里程碑列表 + 各里程碑 targetDate + 期望 proficiency 水平
+   - 用户当前基础
+2. 读取 `session-notes.yaml`，检查是否有适用于当前科目的对话衍生需求（如用户要求增加/删除某些模块、强调某方向）
 
 ### 第 2 步：生成知识树
 
@@ -39,6 +41,8 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 - 里程碑要求"能操作"→ 树扩展到 level-2
 - 里程碑要求"能创造"→ 树扩展到 level-3
 - 如果无明确 proficiency 要求 → 默认生成到 level-2，告知用户可在确认时调整
+
+**生成时必须满足 session-notes 中的适用需求**（如用户要求侧重某方向、跳过已掌握的模块等）。
 
 **树结构规则：**
 - 根节点：科目大模块（通常 3-8 个）
@@ -86,12 +90,26 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 2 次仍失败 → 记录问题，保存但在推送时告知用户
 ```
 
-### 第 4 步：调用 learning-audit 知识图谱审计
+### 第 4 步：派发 Audit Agent 知识图谱审计
 
-执行 `learning-audit` 的额外检查：
-- 知识点覆盖度：与目标 subject 的通用知识框架对比，覆盖率 ≥ 70%
-- 学时可行性（有标准型）：总学时 vs 目标 deadline + dailyMinutes 是否可行
-- 范围合理性（无标准型）：总学时 vs 里程碑总时长 + dailyMinutes 是否匹配；树的深度是否与里程碑验收标准一致
+**将知识树派发给独立的 Audit Agent 进行审计。**
+
+派发内容：
+```yaml
+auditType: "knowledge_tree"
+targetId: "<subjectId>"
+studentId: "<studentId>"
+artifact: "<完整的知识树 YAML>"
+```
+
+Audit Agent 自己读取知识树 Schema、目标文件、session-notes 等进行独立审计。
+
+审计结果处理：
+- **verdict = "passed"** → 进入第 5 步
+- **verdict = "passed_with_notes"** → 进入第 5 步，展示时附带 soft 建议标记
+- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新派发审计
+- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
+- **Audit Agent 不可用** → 降级为本地审计（执行 6 步验证清单），记录降级事件
 
 审计结果保存到 `progress/<studentId>/audit/knowledge-tree-<subjectId>-<timestamp>.json`
 

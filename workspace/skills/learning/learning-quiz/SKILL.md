@@ -1,6 +1,6 @@
 ---
 name: learning-quiz
-description: "Generate quiz questions, audit quality, assess knowledge mastery per node or timeframe. Interactive quiz delivery via chat, scoring, and mastery level updates."
+description: "Generate quiz questions, dispatch to independent Audit Agent for quality check, assess knowledge mastery per node or timeframe. Interactive quiz delivery via chat, scoring, and mastery level updates."
 ---
 
 # Learning Quiz — 测验与评估
@@ -18,7 +18,9 @@ description: "Generate quiz questions, audit quality, assess knowledge mastery p
 - 知识树：`knowledge-trees/<studentId>/<subjectId>.yaml`
 - 掌握度：`progress/<studentId>/mastery.json`
 - 测验日志：`progress/<studentId>/quiz-results.jsonl`
+- 错题本：`progress/<studentId>/wrong-answers.jsonl`
 - 目标：`learning-profiles/<studentId>/goals.yaml`
+- **对话笔记**：`progress/<studentId>/session-notes.yaml`
 
 ## 测验类型
 
@@ -89,26 +91,46 @@ description: "Generate quiz questions, audit quality, assess knowledge mastery p
    - **有标准型**：搜索该节点的"考点"、"历年真题"、"公式定义"
    - **无标准型**：搜索该节点的"实际应用场景"、"常见错误"、"最佳实践"、"项目案例"
 3. 根据掌握度选择题目难度
-4. 生成题目
+4. 读取 `session-notes.yaml`，检查是否有适用于当前节点的对话衍生需求（如用户要求多出应用题）
+5. 生成题目（必须满足 session-notes 中的适用需求）
 
-### 第 5 步：调用 learning-audit 测试题审计
+### 第 6 步：更新 session-notes
 
-在发送给用户前，执行审计检查：
+出题后，检查本轮交互中是否产生了需要持久化的信息：
 
-| # | 检查项 | 通过条件 |
-|---|--------|---------|
-| 1 | 题型比例 | 选择 50-70% / 判断 10-30% / 简答 5-20% / 应用 5-20% |
-| 2 | 难度分布 | 基础 ≥ 40% / 进阶 20-50% / 挑战 5-25% |
-| 3 | **答案正确性** | Agent 重新独立求解，结果与预设答案一致（**硬指标**） |
-| 4 | 题目去重 | 与历史题目重复率 < 20% |
-| 5 | 选项质量 | 互斥、有且仅有一个正确答案、无笼统选项 |
-| 6 | 题干清晰度 | 无歧义词、有足够上下文 |
+```yaml
+# 需要写入 session-notes 的场景：
+# - 用户在答题过程中暴露了特定薄弱点（不在 mastery 数据中的）
+# - 用户对某道题提出了异议且合理
+# - 用户表达了偏好的题型或考察方式
+```
 
-- 检查项 3 为硬指标，必须通过
-- 检查项 1-2 偏差 > 10% → 调整后重新检查
-- 检查项 4 重复率 ≥ 20% → 替换重复题目
-- 最多重试 1 次
-- 审计结果保存到 `progress/<studentId>/audit/quiz-<nodeId>-<timestamp>.json`
+> 格式见 `templates/session-notes-template.yaml`
+
+### 第 7 步：派发 Audit Agent 审计
+
+**将题目集派发给独立的 Audit Agent 进行审计。**
+
+这是关键步骤——**自己出题不能自己审**。Audit Agent 在独立上下文中重新求解每道题，验证答案正确性。
+
+派发内容：
+```yaml
+auditType: "quiz"
+targetId: "<当前 nodeId>"
+studentId: "<studentId>"
+artifact: "<生成的完整题目集（含答案和解析）>"
+```
+
+**不传递**：出题推理过程、选题逻辑、对话历史。Audit Agent 自己读取 quiz-results、wrong-answers、session-notes 等数据文件。
+
+审计结果处理：
+- **verdict = "passed"** → 进入交互答题流程
+- **verdict = "passed_with_notes"** → 进入交互答题流程，附带 soft 建议标记
+- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新派发审计
+- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
+- **Audit Agent 不可用** → 降级为本地审计，记录降级事件
+
+审计结果保存到 `progress/<studentId>/audit/quiz-<nodeId>-<timestamp>.json`
 
 ## 交互答题流程
 

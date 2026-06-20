@@ -1,6 +1,6 @@
 ---
 name: learning-content
-description: "Retrieve, generate, audit, and push learning content per knowledge tree node. Content is audited before delivery, written to Feishu Docs, and a link is pushed via message card with interactive buttons. Adapts depth based on student learning speed."
+description: "Retrieve, generate, audit, and push learning content per knowledge tree node. Content is audited by independent Audit Agent before delivery, written to Feishu Docs, and a link is pushed via message card with interactive buttons. Adapts depth based on student learning speed."
 ---
 
 # Learning Content - 学习内容生成与推送
@@ -17,7 +17,7 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 2. **内容必须有足够深度和长度。** 每个节点的学习材料是一篇完整教材，不是概要或提纲。
 3. **内容生成 = 联网检索 + 深度整合 + 结构化输出。** 不是搜索结果的拼接，而是基于多方资料的原创教材。
 4. **效率高 = 内容更多。** 学习效率高说明用户吸收快，应该推送更多、更深的内容。
-5. **生成后必须审计。** 内容生成后必须经过 `learning-audit` 检查，通过后才能写入飞书文档。
+5. **生成后必须审计。** 内容生成后必须经过 **Audit Agent** 独立审计，通过后才能写入飞书文档。
 
 ## 内容深度与长度要求
 
@@ -73,6 +73,7 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 - 掌握度：`progress/<studentId>/mastery.json`
 - 内容日志：`progress/<studentId>/content-log.jsonl`
 - 内容文件：`progress/<studentId>/content/<nodeId>-<seq>.md`
+- **对话笔记**：`progress/<studentId>/session-notes.yaml`
 - 内容模板：`templates/content-template.md`
 - 卡片模板：`templates/message-card.json`
 
@@ -90,6 +91,7 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 3. 从内容日志中计算该用户的学习速度指标
 4. 根据学习速度确定内容生成策略
 5. 如果有前置节点未完成，读取前置节点内容摘要
+6. 读取 `session-notes.yaml`，检查是否有适用于当前节点的对话衍生需求
 
 ### 第 3 步：联网检索（收集素材）
 
@@ -107,23 +109,46 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 生成原则：准确性优先 → 结构化 → 渐进式 → 举例说明 → 联系实际 → 语言简洁 → 足够长
 
-### 第 5 步：调用 learning-audit 内容审计
+**生成时必须满足 session-notes 中的适用需求**（如用户要求多用电商案例、要求分步讲解等）。
 
-在写入飞书文档前，执行审计检查：
+### 第 5 步：更新 session-notes
 
-| # | 检查项 | 通过条件 |
-|---|--------|---------|
-| 1 | 字数达标 | ≥ 最低标准（2000/3000/4500 字） |
-| 2 | 结构完整性 | 必需小节全部存在 |
-| 3 | 知识准确性抽检 | 核心概念与联网检索结果无矛盾 |
-| 4 | 前后一致性 | 内容与知识树节点描述一致 |
-| 5 | 练习题可解性 | 每题都有答案和解析 |
+内容生成后，检查本次对话中是否产生了需要持久化的信息，如果有则写入 `session-notes.yaml`：
 
-- 检查项 1-2 为硬指标，未通过 → 自动补充后重新检查（最多 1 次）
-- 检查项 3-5 为软指标，记录但不阻塞
-- 审计结果保存到 `progress/<studentId>/audit/content-<nodeId>-<timestamp>.json`
+```yaml
+# 需要写入 session-notes 的场景：
+# - 用户在本轮对话中表达了新的偏好（如"多用案例"、"讲慢一点"）
+# - 发现了之前内容中的错误并修正
+# - 用户调整了学习计划或范围
+# - 观察到了学习状态变化（如用户对某概念困惑）
+```
 
-### 第 6 步：写入飞书文档（必须执行）
+> 格式见 `templates/session-notes-template.yaml`
+
+### 第 6 步：派发 Audit Agent 审计
+
+**将生成物派发给独立的 Audit Agent 进行审计。**
+
+派发内容：
+```yaml
+auditType: "content"
+targetId: "<当前 nodeId>"
+studentId: "<studentId>"
+artifact: "<生成的完整学习内容>"
+```
+
+**不传递**：生成推理过程、自适应分析结论、对话历史。Audit Agent 自己读取数据文件。
+
+审计结果处理：
+- **verdict = "passed"** → 进入第 7 步（写飞书文档）
+- **verdict = "passed_with_notes"** → 进入第 7 步，推送时附带 soft 建议标记
+- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新派发审计
+- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
+- **Audit Agent 不可用** → 降级为本地审计（在同一上下文中执行检查项 1-7），记录降级事件
+
+审计结果保存到 `progress/<studentId>/audit/content-<nodeId>-<timestamp>.json`
+
+### 第 7 步：写入飞书文档（必须执行）
 
 **严禁跳过此步骤直接在聊天中发送内容。**
 
@@ -133,18 +158,20 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 **写入方式：** 调用 `feishu_create_doc`（传入 Markdown + folder_token），失败则最多重试 1 次。
 
-### 第 7 步：推送消息卡片（必须执行）
+### 第 8 步：推送消息卡片（必须执行）
 
 > 卡片 JSON 模板见 `templates/message-card.json`
 
 通过飞书发送交互卡片，包含"已完成"和"有疑问"按钮。
 
-### 第 8 步：处理用户交互
+### 第 9 步：处理用户交互
 
 **"已完成" 按钮：** 更新 session 状态 → 记录日志 → 触发随堂小测 → 推送下一条
 **"有疑问" 按钮：** 引导提问 → 解答 → 补充飞书文档
 
-### 第 9 步：保存本地副本
+**用户反馈写入 session-notes**：如果用户在交互中表达了偏好或纠正了错误，立即更新 `session-notes.yaml`。
+
+### 第 10 步：保存本地副本
 
 1. 保存内容到 `progress/<studentId>/content/<nodeId>-<seq>.md`
 2. 追加记录到 `progress/<studentId>/content-log.jsonl`

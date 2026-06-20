@@ -4,17 +4,17 @@
 
 帮助用户根据学习需求规划学习任务，生成学习内容，测验学习成果，生成复盘报表。支持考试备考、技能学习、语言学习等多种目标类型。
 
-## 核心能力（11 大 SKILL）
+## 核心能力（11 大 SKILL，多 Agent 架构）
 
 | # | SKILL | 说明 |
 |---|-------|------|
-| 1 | `learning-core` | 核心引擎 — 路由、闭环驱动、数据持久化、学生身份映射 |
+| 1 | `learning-core` | 核心引擎 — 路由、多 Agent 架构、Session Notes 机制、闭环驱动、数据持久化、学生身份映射 |
 | 2 | `learning-goals` | 目标拆解 — **二分法自适应**（有标准型/无标准型）+ 项目引导 + 里程碑验收 |
-| 3 | `learning-knowledge-tree` | 知识图谱 — 三级结构 + **6 步语义验证** + JSON Schema 验证 |
+| 3 | `learning-knowledge-tree` | 知识图谱 — 三级结构 + **6 步语义验证** + JSON Schema 验证 → ⚡派发审计 |
 | 4 | `learning-plan` | 学习计划 — YAML Schema + 艾宾浩斯复习 + 量化动态调整 + 考前冲刺 |
-| 5 | `learning-content` | 内容生成 — 联网检索 + 深度教材 + **内容审计** + 飞书文档 + 自适应策略 |
-| 6 | `learning-quiz` | 测验评估 — 5 种测验类型 + 题量评估算法 + **题目审计** + 错题管理 |
-| 7 | `learning-audit` | **质量审计** — 知识图谱/学习内容/测试题生成后的自动化质量检查 |
+| 5 | `learning-content` | 内容生成 — 联网检索 + 深度教材 + 飞书文档 + 自适应策略 → ⚡派发审计 |
+| 6 | `learning-quiz` | 测验评估 — 5 种测验类型 + 题量评估算法 + 错题管理 → ⚡派发审计 |
+| 7 | `learning-audit` ⚡ | **独立审计 Agent** — 隔离上下文，独立质量检查（知识图谱/内容/题目） |
 | 8 | `learning-review` | 学习复盘 — 独立复盘模块，数据→洞察→行动 |
 | 9 | `learning-reports` | 可视化报表 — 引用飞书多维表格 Dashboard（折线图/柱状图/饼图）+ 聊天摘要 |
 | 10 | `learning-cron` | 定时任务 — **多学生隔离** + 创建/更新/删除自动化 cron 任务 |
@@ -41,17 +41,18 @@ learning-agent/
     ├── templates/              # 独立模板文件（从 SKILL.md 拆出）
     │   ├── plan-schema.yaml        # 学习计划完整 YAML Schema 示例
     │   ├── content-template.md     # 学习内容格式模板
+    │   ├── session-notes-template.yaml  # 对话笔记模板（审计 + 上下文恢复）
     │   ├── message-card.json       # 飞书消息卡片 JSON 模板
     │   └── feishu-scopes.json      # 飞书 OAuth 完整权限范围（180+ scope）
     └── skills/
         └── learning/
-            ├── learning-core/          # 核心引擎
+            ├── learning-core/          # 核心引擎（多 Agent 架构 + Session Notes）
             ├── learning-goals/         # 学习目标管理（含飞书权限预检）
-            ├── learning-knowledge-tree/# 知识图谱（含 6 步语义验证）
+            ├── learning-knowledge-tree/# 知识图谱（含 6 步语义验证 → ⚡派发审计）
             ├── learning-plan/          # 学习计划（含动态调整 + 量化算法）
-            ├── learning-content/       # 内容生成与推送（含内容审计）
-            ├── learning-quiz/          # 测验评估（含题目审计）
-            ├── learning-audit/         # 质量审计（知识图谱/内容/题目）
+            ├── learning-content/       # 内容生成与推送（→ ⚡派发审计）
+            ├── learning-quiz/          # 测验评估（→ ⚡派发审计）
+            ├── learning-audit/         # ⚡独立审计 Agent（隔离上下文）
             ├── learning-reports/       # 可视化报表（飞书多维表格）
             ├── learning-review/        # 学习复盘（独立模块）
             ├── learning-cron/          # 定时任务管理（多学生隔离）

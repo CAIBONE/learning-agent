@@ -5,16 +5,16 @@
 
 ## 工作流总览
 
-本 Agent 通过 11 个 skill 驱动完整学习闭环：**规划→学习→测验→审计→调整→复盘**。
+本 Agent 通过 10 个内置 skill + 1 个独立 Audit Agent 驱动完整学习闭环：**规划→生成→审计→测验→审计→调整→复盘**。
 
-| 步骤 | 调用 Skill | 职责 |
+| 步骤 | 调用 Skill / Agent | 职责 |
 |------|-----------|------|
 | 目标设定 | `learning-goals` | 对话式捕获目标 + 飞书权限预检，写入 goals.yaml |
-| 知识树生成 | `learning-knowledge-tree` | 从目标生成知识树 + 语义验证，写入 knowledge-trees/ |
+| 知识树生成 | `learning-knowledge-tree` | 从目标生成知识树 + 语义验证 → ⚡派发审计 |
 | 学习计划 | `learning-plan` | 从知识树+目标生成计划 + 动态调整，写入 plans/ |
-| 内容推送 | `learning-content` | 生成教材 + 内容审计 + 写飞书文档 + 消息卡片推送 |
-| 测验评估 | `learning-quiz` | 生成测验题 + 题目审计 + 交互式答题 + 评分 |
-| **质量审计** | **`learning-audit`** | **知识图谱/学习内容/测试题生成后的自动化质量检查** |
+| 内容推送 | `learning-content` | 生成教材 + 写飞书文档 + 消息卡片推送 → ⚡派发审计 |
+| 测验评估 | `learning-quiz` | 生成测验题 + 交互式答题 + 评分 → ⚡派发审计 |
+| **质量审计** | **`learning-audit`** ⚡独立 Agent | **知识图谱/内容/题目的独立质量检查** |
 | 学习复盘 | `learning-review` | 独立复盘模块，数据→洞察→行动 |
 | 报表生成 | `learning-reports` | 飞书多维表格 Dashboard + 聊天摘要 |
 | 定时任务 | `learning-cron` | 创建/更新/删除自动化 cron 任务（按学生隔离） |
@@ -23,19 +23,40 @@
 ## 工作流阶段
 
 ### 阶段 1：学习目标拆解与路径规划
-**触发**：用户表达学习意愿 → `learning-goals` → `learning-knowledge-tree` → `learning-plan`
+**触发**：用户表达学习意愿 → `learning-goals` → `learning-knowledge-tree` → ⚡审计 → `learning-plan`
 
 ### 阶段 2：学习内容生成与推送
-**触发**：cron 定时 / 用户请求 → `learning-content`（含 `learning-audit` 内容审计）→ 飞书文档 + 消息卡片
+**触发**：cron 定时 / 用户请求 → `learning-content` → ⚡审计 → 飞书文档 + 消息卡片
 
 ### 阶段 3：阶段测验与评估
-**触发**：内容完成 / 定期 / 用户要求 → `learning-quiz`（含 `learning-audit` 题目审计）→ 评分 + 错题管理
+**触发**：内容完成 / 定期 / 用户要求 → `learning-quiz` → ⚡审计 → 评分 + 错题管理
 
 ### 阶段 4：动态调整学习规划
 **触发**：测验后 / 复盘后 → `learning-plan` 调整 → `learning-cron` 更新
 
 ### 阶段 5：可视化报表与复盘
 **触发**：每周五 / 每月 / 用户请求 → `learning-reports` + `learning-review`
+
+## 多 Agent 架构
+
+```
+┌─────────────────────────────────────────────────┐
+│              学吧 Main Agent                      │
+│  内置 10 个 Skill，保持对话历史，负责生成和交互      │
+│  生成完成 → 写 session-notes → 派发 Audit Agent    │
+└──────────────────────┬──────────────────────────┘
+                       │
+                       ▼
+         ┌──────────────────────────┐
+         │   Audit Agent（独立上下文）│
+         │   看不到生成推理过程       │
+         │   自主读取数据文件审计      │
+         └──────────────────────────┘
+```
+
+**为什么要拆**：既当运动员又当裁判会出问题。Audit Agent 在独立上下文中运行，只看到生成物、数据文件和 session-notes，确保审计客观性。
+
+**Session Notes**：对话中产生的关键信息（用户偏好、纠错、状态变化）持久化到 `session-notes.yaml`，供 Audit Agent 审计和下次会话恢复上下文。
 
 ## 补充能力
 
@@ -51,11 +72,12 @@
 
 - 推送卡片格式：见 `templates/message-card.json`
 - 学习内容模板：见 `templates/content-template.md`
+- Session Notes 模板：见 `templates/session-notes-template.yaml`
 - 测验交互格式：见 `learning-quiz/SKILL.md`
 
 ---
 
 *创建日期：2026-06-14*
-*更新日期：2026-06-15*
-*版本：2.0*
-*定位：Intelligent Learning Assistant — 技能路由（人格由 SOUL.md 定义）*
+*更新日期：2026-06-20*
+*版本：2.1*
+*定位：Intelligent Learning Assistant — 技能路由 + 多 Agent 架构（人格由 SOUL.md 定义）*

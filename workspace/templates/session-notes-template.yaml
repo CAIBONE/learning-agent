@@ -1,0 +1,56 @@
+# Session Notes 模板
+# 路径：progress/<studentId>/session-notes.yaml
+# 用途：记录对话中产生的、未持久化到其他数据文件的关键信息
+# 消费者：Audit Agent（审计时读取）、下次会话的 Main Agent（恢复上下文时读取）
+#
+# 注意：只记录"结论"，不记录"推理过程"。
+# 这些信息是 Main Agent 从对话中提取的客观事实，供其他 agent 直接使用。
+
+studentId: "<studentId>"
+updatedAt: "2026-06-20T10:00:00+08:00"
+
+notes:
+  # ─── 用户反馈类 ───
+  # 用户在对话中明确表达的学习偏好或改进要求
+  - type: "user_feedback"
+    createdAt: "2026-06-20T10:00:00+08:00"
+    content: "用户要求：多用电商场景举例，减少抽象理论"
+    appliesTo: "all"                    # "all" = 后续所有内容 | "mod-01-02" = 特定节点
+    resolved: false                     # 是否已在后续内容中落实
+
+  # ─── 纠错类 ───
+  # 用户或 Main Agent 发现的之前内容中的错误
+  - type: "correction"
+    createdAt: "2026-06-20T09:30:00+08:00"
+    content: "上次「二叉树遍历」的解释有误：中序遍历顺序应为 左-根-右，不是 根-左-右"
+    appliesTo: "mod-01-02"
+    resolved: true                      # 已在本次内容中修正
+
+  # ─── 上下文类 ───
+  # 影响内容生成策略的对话上下文
+  - type: "context"
+    createdAt: "2026-06-19T20:00:00+08:00"
+    content: "用户下周出差，本周学习量需要加大"
+    appliesTo: "this_week"
+    resolved: false
+
+  # ─── 学习状态类 ───
+  # 对话中观察到的学习状态变化（不体现在掌握度数据中的）
+  - type: "learning_state"
+    createdAt: "2026-06-20T10:00:00+08:00"
+    content: "用户表示对递归概念感到困惑，需要更直观的类比"
+    appliesTo: "mod-01-03"
+    resolved: false
+
+  # ─── 需求变更类 ───
+  # 用户在对话中提出的计划/范围调整
+  - type: "requirement_change"
+    createdAt: "2026-06-18T15:00:00+08:00"
+    content: "用户要求跳过第 5 章（已在工作中使用过），直接进入第 6 章"
+    appliesTo: "plan"
+    resolved: true
+
+# ─── 清理规则 ───
+# - resolved: true 的条目保留 7 天后自动清理
+# - 每次写入前检查并清理过期条目
+# - 总条目上限：20 条，超出时优先清理 resolved: true 的旧条目
