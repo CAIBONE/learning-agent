@@ -42,7 +42,7 @@ learning-agent/
 ├── AGENTS.md                     # Agent 工作区规范
 ├── .gitignore
 ├── setup.sh                      # 一键部署脚本（双 Agent）
-├── openclaw-config-patch.json    # 配置模板（双 Agent + subagents 权限）
+├── openclaw-config-patch.json    # 配置模板（双 Agent 注册 + 渠道 + 绑定）
 ├── docs/
 │   ├── DEPLOY-PROMPT.md          # AI 工具部署提示词
 │   ├── USAGE.md                  # 使用指南

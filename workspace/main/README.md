@@ -10,7 +10,7 @@
 
 ## 技能模块
 
-`skills/learning/` 下 11 个 Skill，每个含 `SKILL.md`：
+`skills/learning/` 下 10 个 Skill，每个含 `SKILL.md`：
 
 | Skill | 职责 |
 |-------|------|
@@ -18,13 +18,14 @@
 | learning-goals | 目标捕获 + 飞书权限预检 |
 | learning-knowledge-tree | 知识树生成 + 6 步语义验证 |
 | learning-plan | 排程 + 艾宾浩斯 + 量化动态调整 |
-| learning-content | 内容生成 + 审计 + 飞书推送 |
-| learning-quiz | 测验 + 审计 + 评分 |
-| learning-audit | 知识图谱/内容/题目质量检查 |
+| learning-content | 内容生成 + 审计派发 + 飞书推送 |
+| learning-quiz | 测验 + 审计派发 + 评分 |
 | learning-reports | 飞书多维表格 Dashboard |
 | learning-review | 复盘：数据→洞察→行动 |
 | learning-cron | 定时任务（多学生隔离） |
 | learning-feishu-sync | 飞书知识库+多维表格同步 |
+
+> `learning-audit` 已拆分为独立 Audit Agent（`intelligent-learning-audit`），不在本工作区内。
 
 ## 模板
 

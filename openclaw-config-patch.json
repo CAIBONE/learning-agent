@@ -1,11 +1,13 @@
 {
+  "_comment": "合并此文件到 ~/.openclaw/openclaw.json。所有相对路径基于 ~/.openclaw/ 目录。替换 YOUR_APP_ID 和 YOUR_APP_SECRET 为实际飞书凭证。",
   "agents": {
     "list": [
       {
         "id": "intelligent-learning-assistant",
         "name": "学吧",
-        "workspace": "../workspace/main",
-        "agentDir": "./agent/main",
+        "workspace": "./workspace-main",
+        "agentDir": "./agents/intelligent-learning-assistant/agent",
+        "model": { "primary": "bailian-thinking/qwen3.7-plus" },
         "skills": [
           "learning-core",
           "learning-goals",
@@ -19,9 +21,6 @@
           "learning-feishu-sync"
         ],
         "tools": {
-          "subagents": {
-            "allowAgents": ["intelligent-learning-audit"]
-          },
           "alsoAllow": [
             "sessions_send",
             "cron_create",
@@ -71,12 +70,10 @@
       {
         "id": "intelligent-learning-audit",
         "name": "学习审计 Agent",
-        "workspace": "../workspace/audit",
-        "agentDir": "./agent/audit",
-        "skills": ["learning-audit"],
-        "tools": {
-          "alsoAllow": []
-        }
+        "workspace": "./workspace-audit",
+        "agentDir": "./agents/intelligent-learning-audit/agent",
+        "model": { "primary": "bailian-thinking/qwen3.7-plus" },
+        "skills": ["learning-audit"]
       }
     ]
   },

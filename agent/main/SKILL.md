@@ -60,8 +60,8 @@
 **为什么要拆**：既当运动员又当裁判会出问题。Audit Agent 在独立上下文中运行，只看到生成物、数据文件和 session-notes，确保审计客观性。
 
 **Agent 配置**：
-- Main Agent: `agent/agent.json` — 加载 10 个 skill（不含 learning-audit）
-- Audit Agent: `audit-agent/agent.json` — 只加载 learning-audit
+- Main Agent: `agent/main/agent.json` — 加载 10 个 skill（不含 learning-audit）
+- Audit Agent: `agent/audit/agent.json` — 只加载 learning-audit
 
 **派发协议**：
 

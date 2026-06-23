@@ -9,7 +9,7 @@ description: "Core intelligent learning assistant skill. Routing logic, multi-ag
 
 ## 技能路由（重要）
 
-本 Agent 加载了以下 11 个 skills，每个 workflow 步骤对应一个 skill：
+本 Agent 加载了以下 10 个 skills，每个 workflow 步骤对应一个 skill：
 
 | 步骤 | 调用 Skill | 职责 |
 |------|-----------|------|
