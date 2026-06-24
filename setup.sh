@@ -31,7 +31,7 @@ echo "  Workspace: $AUDIT_WORKSPACE_DIR"
 echo ""
 
 # Step 1: Create directories
-echo "[1/7] Creating directories..."
+echo "[1/8] Creating directories..."
 mkdir -p "$MAIN_AGENT_DIR/agent"
 mkdir -p "$AUDIT_AGENT_DIR/agent"
 mkdir -p "$MAIN_WORKSPACE_DIR/skills/learning"
@@ -40,7 +40,7 @@ mkdir -p "$MAIN_WORKSPACE_DIR/data"
 mkdir -p "$AUDIT_WORKSPACE_DIR/skills/learning"
 
 # Step 2: Copy Main Agent files
-echo "[2/7] Copying Main Agent files..."
+echo "[2/8] Copying Main Agent files..."
 if [ -f "$SCRIPT_DIR/agent/intelligent-learning-assistant/agent.json" ]; then
     cp "$SCRIPT_DIR/agent/intelligent-learning-assistant/agent.json" "$MAIN_AGENT_DIR/agent/agent.json"
     echo "  ✓ agent/intelligent-learning-assistant/agent.json"
@@ -51,7 +51,7 @@ if [ -f "$SCRIPT_DIR/agent/intelligent-learning-assistant/SKILL.md" ]; then
 fi
 
 # Step 3: Copy Audit Agent files
-echo "[3/7] Copying Audit Agent files..."
+echo "[3/8] Copying Audit Agent files..."
 if [ -f "$SCRIPT_DIR/agent/intelligent-learning-audit/agent.json" ]; then
     cp "$SCRIPT_DIR/agent/intelligent-learning-audit/agent.json" "$AUDIT_AGENT_DIR/agent/agent.json"
     echo "  ✓ agent/intelligent-learning-audit/agent.json"
@@ -62,18 +62,25 @@ if [ -f "$SCRIPT_DIR/agent/intelligent-learning-audit/SKILL.md" ]; then
 fi
 
 # Step 4: Copy Main workspace files
-echo "[4/7] Copying Main workspace files..."
-if [ -f "$SCRIPT_DIR/workspace/intelligent-learning-assistant/IDENTITY.md" ]; then
-    cp "$SCRIPT_DIR/workspace/intelligent-learning-assistant/IDENTITY.md" "$MAIN_WORKSPACE_DIR/IDENTITY.md"
-    echo "  ✓ IDENTITY.md"
-fi
-if [ -f "$SCRIPT_DIR/workspace/intelligent-learning-assistant/SOUL.md" ]; then
-    cp "$SCRIPT_DIR/workspace/intelligent-learning-assistant/SOUL.md" "$MAIN_WORKSPACE_DIR/SOUL.md"
-    echo "  ✓ SOUL.md"
-fi
+echo "[4/8] Copying Main workspace files..."
+for f in AGENTS.md IDENTITY.md README.md SOUL.md; do
+    if [ -f "$SCRIPT_DIR/workspace/intelligent-learning-assistant/$f" ]; then
+        cp "$SCRIPT_DIR/workspace/intelligent-learning-assistant/$f" "$MAIN_WORKSPACE_DIR/$f"
+        echo "  ✓ $f"
+    fi
+done
+
+# Step 4b: Copy Audit workspace files
+echo "[4b/8] Copying Audit workspace files..."
+for f in AGENTS.md IDENTITY.md SOUL.md; do
+    if [ -f "$SCRIPT_DIR/workspace/intelligent-learning-audit/$f" ]; then
+        cp "$SCRIPT_DIR/workspace/intelligent-learning-audit/$f" "$AUDIT_WORKSPACE_DIR/$f"
+        echo "  ✓ $f"
+    fi
+done
 
 # Step 5: Copy skills
-echo "[5/7] Copying skills..."
+echo "[6/8] Copying skills..."
 # Main Agent skills (10 skills)
 if [ -d "$SCRIPT_DIR/workspace/intelligent-learning-assistant/skills/learning" ]; then
     for skill_dir in "$SCRIPT_DIR/workspace/intelligent-learning-assistant/skills/learning"/*/; do
@@ -94,14 +101,14 @@ if [ -d "$SCRIPT_DIR/workspace/intelligent-learning-audit/skills/learning/learni
 fi
 
 # Step 6: Copy templates
-echo "[6/7] Copying templates..."
+echo "[7/8] Copying templates..."
 if [ -d "$SCRIPT_DIR/workspace/intelligent-learning-assistant/templates" ]; then
     cp -r "$SCRIPT_DIR/workspace/intelligent-learning-assistant/templates"/* "$MAIN_WORKSPACE_DIR/templates/"
     echo "  ✓ $(ls "$MAIN_WORKSPACE_DIR/templates/" | wc -l) templates"
 fi
 
 # Step 7: Register agents with OpenClaw CLI
-echo "[7/7] Registering agents..."
+echo "[8/8] Registering agents..."
 if command -v openclaw &>/dev/null; then
     # Register Main Agent
     openclaw agents add "$MAIN_AGENT_ID" \
