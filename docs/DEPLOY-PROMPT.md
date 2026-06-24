@@ -96,6 +96,7 @@ learning-agent/                                      # 仓库根目录
 │       └── SKILL.md                                 # 审计入口 + 派发协议
 └── workspace/
     ├── intelligent-learning-assistant/              # Main Agent 工作区源文件
+    │   ├── AGENTS.md                                # 工作区规范（双 Agent 架构、审计机制）
     │   ├── IDENTITY.md                              # Agent 身份卡
     │   ├── SOUL.md                                  # Agent 人格（苏格拉底式教学 + 费曼法 + 数据驱动）
     │   ├── templates/
@@ -106,6 +107,7 @@ learning-agent/                                      # 仓库根目录
     │   │   └── session-notes-template.yaml          # 会话笔记模板（跨 Agent 上下文桥接）
     │   └── skills/learning/                         # 10 个技能模块（详见 README.md）
     └── intelligent-learning-audit/                  # Audit Agent 工作区源文件
+        ├── AGENTS.md                                # 审计官工作区规范
         ├── IDENTITY.md                              # 审计官身份卡
         ├── SOUL.md                                  # 审计官人格（独立、客观、严格）
         └── skills/learning/
@@ -305,7 +307,9 @@ systemctl restart openclaw
 
 **为什么拆**：既当运动员又当裁判会出问题。Audit Agent 在独立上下文中运行，只看到生成物、数据文件和 session-notes，确保审计客观性。
 
-**派发协议**：Main Agent 通过 `sessions_send` 向 Audit Agent 发送审计任务（仅传生成物 + 审计类型 + 学生 ID，不传推理过程）。Audit Agent 返回结构化审计结果（verdict: passed / passed_with_notes / not_passed / user_arbitration）。
+**派发协议**：Main Agent 通过 `sessions_send` 向 Audit Agent 发送审计任务（传生成物 + 审计类型 + 学生 ID + 适用的 session-notes 条目，不传推理过程）。Audit Agent 返回结构化审计结果（verdict: passed / passed_with_notes / not_passed / user_arbitration）。
+
+**审计通知**：**每个审计结果都必须通过飞书通知用户**，不可静默处理。passed 时告知"审计通过"，not_passed 重试时告知"正在修复"，user_arbitration 时展示完整反馈。
 
 **subagents 配置**：Main Agent 的 `tools.subagents.allowAgents` 必须包含 `intelligent-learning-audit`，否则跨 Agent 调用会被拒绝。
 

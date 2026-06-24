@@ -25,13 +25,13 @@
 
 | # | SKILL | 说明 |
 |---|-------|------|
-| 1 | `learning-audit` ⚡ | **独立审计 Agent** — 隔离上下文，同步阻塞调用，独立质量检查（知识图谱/内容/题目/学习量） |
+| 1 | `learning-audit` | **独立审计 Agent** — 隔离上下文，同步阻塞调用，独立质量检查（知识图谱/内容/题目/学习计划/学习量） |
 
 ### 跨 Agent 调用机制
 
 - **Main Agent** 通过 `sessions_send`（同步阻塞）调用 **Audit Agent**
 - `timeoutSeconds: 600`（10 分钟），审计期间 Main Agent 等待结果
-- 审计结果自动返回 Main Agent，Main Agent 根据 verdict 决定是否修复重试
+- 审计结果自动返回 Main Agent，**必须通过飞书通知用户**（每个 verdict 都要通知，不可静默）
 - 重试上限 3 次，超过则提交用户裁决
 
 ## 目录结构
@@ -56,7 +56,9 @@ learning-agent/
 │       └── SKILL.md              # 审计入口 + 派发协议
 └── workspace/
     ├── intelligent-learning-assistant/    # Main Agent 专属 workspace
+    │   ├── AGENTS.md             # 工作区规范（双 Agent 架构、审计机制）
     │   ├── IDENTITY.md           # Agent 身份定义
+    │   ├── README.md             # 工作区说明
     │   ├── SOUL.md               # Agent 人格、教学风格、首次回复规则
     │   ├── data/                 # 学生数据（profile/progress/audit 记录）
     │   ├── templates/            # 模板文件
@@ -78,6 +80,7 @@ learning-agent/
     │           ├── learning-cron/
     │           └── learning-feishu-sync/
     └── intelligent-learning-audit/        # Audit Agent 专属 workspace
+        ├── AGENTS.md             # 审计官工作区规范
         ├── IDENTITY.md           # 审计官身份
         ├── SOUL.md               # 审计官人格
         └── skills/
