@@ -26,7 +26,7 @@
 必须完成：
   1. 创建企业自建应用 → 记录 App ID 和 App Secret
   2. 开启机器人能力（应用功能 → 机器人）
-  3. 配置权限（权限管理 → 参考 workspace/main/templates/feishu-scopes.json 中的 180+ scope）
+  3. 配置权限（权限管理 → 参考 workspace/intelligent-learning-assistant/templates/feishu-scopes.json 中的 180+ scope）
      核心权限分类：
      - 文档：docx:document, docs:document.*
      - 多维表格：base:*, bitable:*
@@ -88,14 +88,14 @@ learning-agent/                                      # 仓库根目录
 ├── setup.sh                                         # 一键部署脚本（自动完成步骤 3.1 + 3.2）
 ├── openclaw-config-patch.json                       # Agent 注册 + 渠道 + 绑定配置模板
 ├── agent/
-│   ├── main/                                        # Main Agent 源文件（学吧）
+│   ├── intelligent-learning-assistant/              # Main Agent 源文件（学吧）
 │   │   ├── agent.json                               # Agent 元数据（10 个技能、工具白名单、subagents）
 │   │   └── SKILL.md                                 # 技能路由表 + 多 Agent 架构说明
-│   └── audit/                                       # Audit Agent 源文件（审计官）
+│   └── intelligent-learning-audit/                  # Audit Agent 源文件（审计官）
 │       ├── agent.json                               # Agent 元数据（1 个技能）
 │       └── SKILL.md                                 # 审计入口 + 派发协议
 └── workspace/
-    ├── main/                                        # Main Agent 工作区源文件
+    ├── intelligent-learning-assistant/              # Main Agent 工作区源文件
     │   ├── IDENTITY.md                              # Agent 身份卡
     │   ├── SOUL.md                                  # Agent 人格（苏格拉底式教学 + 费曼法 + 数据驱动）
     │   ├── templates/
@@ -105,7 +105,7 @@ learning-agent/                                      # 仓库根目录
     │   │   ├── feishu-scopes.json                   # 飞书 OAuth 完整权限范围（180+ scope）
     │   │   └── session-notes-template.yaml          # 会话笔记模板（跨 Agent 上下文桥接）
     │   └── skills/learning/                         # 10 个技能模块（详见 README.md）
-    └── audit/                                       # Audit Agent 工作区源文件
+    └── intelligent-learning-audit/                  # Audit Agent 工作区源文件
         ├── IDENTITY.md                              # 审计官身份卡
         ├── SOUL.md                                  # 审计官人格（独立、客观、严格）
         └── skills/learning/
@@ -135,10 +135,10 @@ bash setup.sh
 ```
 
 **复制文件**：
-- `agent/main/` → `~/.openclaw/agents/intelligent-learning-assistant/agent/`
-- `agent/audit/` → `~/.openclaw/agents/intelligent-learning-audit/agent/`
-- `workspace/main/` → `~/.openclaw/workspace-intelligent-learning-assistant/`
-- `workspace/audit/` → `~/.openclaw/workspace-intelligent-learning-audit/`
+- `agent/intelligent-learning-assistant/` → `~/.openclaw/agents/intelligent-learning-assistant/agent/`
+- `agent/intelligent-learning-audit/` → `~/.openclaw/agents/intelligent-learning-audit/agent/`
+- `workspace/intelligent-learning-assistant/` → `~/.openclaw/workspace-intelligent-learning-assistant/`
+- `workspace/intelligent-learning-audit/` → `~/.openclaw/workspace-intelligent-learning-audit/`
 
 **注册 Agent**：调用 `openclaw agents add` 注册两个 Agent
 
@@ -328,7 +328,7 @@ systemctl restart openclaw
 
 - 权限在项目创建时由 Agent 发起 OAuth 一次性申请，用户点击授权链接完成
 - 无需在飞书后台手动逐个授权，但应用必须有权限**申请**这些 scope
-- 完整 scope 清单：`workspace/main/templates/feishu-scopes.json`（tenant + user 共 180+）
+- 完整 scope 清单：`workspace/intelligent-learning-assistant/templates/feishu-scopes.json`（tenant + user 共 180+）
 
 ### 5.3 飞书多维表格初始化
 

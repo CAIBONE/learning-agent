@@ -1,6 +1,6 @@
 # Learning Audit Agent — 技能入口
 
-> 完整的审计规则见 `workspace/audit/skills/learning/learning-audit/SKILL.md`。
+> 完整的审计规则见 `workspace/intelligent-learning-audit/skills/learning/learning-audit/SKILL.md`。
 > 本文件定义审计 Agent 的入口和接收派发协议。
 
 ## 定位

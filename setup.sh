@@ -41,42 +41,42 @@ mkdir -p "$AUDIT_WORKSPACE_DIR/skills/learning"
 
 # Step 2: Copy Main Agent files
 echo "[2/7] Copying Main Agent files..."
-if [ -f "$SCRIPT_DIR/agent/main/agent.json" ]; then
-    cp "$SCRIPT_DIR/agent/main/agent.json" "$MAIN_AGENT_DIR/agent/agent.json"
-    echo "  ✓ agent/main/agent.json"
+if [ -f "$SCRIPT_DIR/agent/intelligent-learning-assistant/agent.json" ]; then
+    cp "$SCRIPT_DIR/agent/intelligent-learning-assistant/agent.json" "$MAIN_AGENT_DIR/agent/agent.json"
+    echo "  ✓ agent/intelligent-learning-assistant/agent.json"
 fi
-if [ -f "$SCRIPT_DIR/agent/main/SKILL.md" ]; then
-    cp "$SCRIPT_DIR/agent/main/SKILL.md" "$MAIN_AGENT_DIR/agent/SKILL.md"
-    echo "  ✓ agent/main/SKILL.md"
+if [ -f "$SCRIPT_DIR/agent/intelligent-learning-assistant/SKILL.md" ]; then
+    cp "$SCRIPT_DIR/agent/intelligent-learning-assistant/SKILL.md" "$MAIN_AGENT_DIR/agent/SKILL.md"
+    echo "  ✓ agent/intelligent-learning-assistant/SKILL.md"
 fi
 
 # Step 3: Copy Audit Agent files
 echo "[3/7] Copying Audit Agent files..."
-if [ -f "$SCRIPT_DIR/agent/audit/agent.json" ]; then
-    cp "$SCRIPT_DIR/agent/audit/agent.json" "$AUDIT_AGENT_DIR/agent/agent.json"
-    echo "  ✓ agent/audit/agent.json"
+if [ -f "$SCRIPT_DIR/agent/intelligent-learning-audit/agent.json" ]; then
+    cp "$SCRIPT_DIR/agent/intelligent-learning-audit/agent.json" "$AUDIT_AGENT_DIR/agent/agent.json"
+    echo "  ✓ agent/intelligent-learning-audit/agent.json"
 fi
-if [ -f "$SCRIPT_DIR/agent/audit/SKILL.md" ]; then
-    cp "$SCRIPT_DIR/agent/audit/SKILL.md" "$AUDIT_AGENT_DIR/agent/SKILL.md"
-    echo "  ✓ agent/audit/SKILL.md"
+if [ -f "$SCRIPT_DIR/agent/intelligent-learning-audit/SKILL.md" ]; then
+    cp "$SCRIPT_DIR/agent/intelligent-learning-audit/SKILL.md" "$AUDIT_AGENT_DIR/agent/SKILL.md"
+    echo "  ✓ agent/intelligent-learning-audit/SKILL.md"
 fi
 
 # Step 4: Copy Main workspace files
 echo "[4/7] Copying Main workspace files..."
-if [ -f "$SCRIPT_DIR/workspace/main/IDENTITY.md" ]; then
-    cp "$SCRIPT_DIR/workspace/main/IDENTITY.md" "$MAIN_WORKSPACE_DIR/IDENTITY.md"
+if [ -f "$SCRIPT_DIR/workspace/intelligent-learning-assistant/IDENTITY.md" ]; then
+    cp "$SCRIPT_DIR/workspace/intelligent-learning-assistant/IDENTITY.md" "$MAIN_WORKSPACE_DIR/IDENTITY.md"
     echo "  ✓ IDENTITY.md"
 fi
-if [ -f "$SCRIPT_DIR/workspace/main/SOUL.md" ]; then
-    cp "$SCRIPT_DIR/workspace/main/SOUL.md" "$MAIN_WORKSPACE_DIR/SOUL.md"
+if [ -f "$SCRIPT_DIR/workspace/intelligent-learning-assistant/SOUL.md" ]; then
+    cp "$SCRIPT_DIR/workspace/intelligent-learning-assistant/SOUL.md" "$MAIN_WORKSPACE_DIR/SOUL.md"
     echo "  ✓ SOUL.md"
 fi
 
 # Step 5: Copy skills
 echo "[5/7] Copying skills..."
 # Main Agent skills (10 skills)
-if [ -d "$SCRIPT_DIR/workspace/main/skills/learning" ]; then
-    for skill_dir in "$SCRIPT_DIR/workspace/main/skills/learning"/*/; do
+if [ -d "$SCRIPT_DIR/workspace/intelligent-learning-assistant/skills/learning" ]; then
+    for skill_dir in "$SCRIPT_DIR/workspace/intelligent-learning-assistant/skills/learning"/*/; do
         skill_name=$(basename "$skill_dir")
         if [ "$skill_name" != "learning-audit" ]; then
             mkdir -p "$MAIN_WORKSPACE_DIR/skills/learning/$skill_name"
@@ -87,16 +87,16 @@ if [ -d "$SCRIPT_DIR/workspace/main/skills/learning" ]; then
 fi
 
 # Audit Agent skills (1 skill)
-if [ -d "$SCRIPT_DIR/workspace/audit/skills/learning/learning-audit" ]; then
+if [ -d "$SCRIPT_DIR/workspace/intelligent-learning-audit/skills/learning/learning-audit" ]; then
     mkdir -p "$AUDIT_WORKSPACE_DIR/skills/learning/learning-audit"
-    cp -r "$SCRIPT_DIR/workspace/audit/skills/learning/learning-audit"/* "$AUDIT_WORKSPACE_DIR/skills/learning/learning-audit/"
+    cp -r "$SCRIPT_DIR/workspace/intelligent-learning-audit/skills/learning/learning-audit"/* "$AUDIT_WORKSPACE_DIR/skills/learning/learning-audit/"
     echo "  ✓ Audit Agent: 1 skill (learning-audit)"
 fi
 
 # Step 6: Copy templates
 echo "[6/7] Copying templates..."
-if [ -d "$SCRIPT_DIR/workspace/main/templates" ]; then
-    cp -r "$SCRIPT_DIR/workspace/main/templates"/* "$MAIN_WORKSPACE_DIR/templates/"
+if [ -d "$SCRIPT_DIR/workspace/intelligent-learning-assistant/templates" ]; then
+    cp -r "$SCRIPT_DIR/workspace/intelligent-learning-assistant/templates"/* "$MAIN_WORKSPACE_DIR/templates/"
     echo "  ✓ $(ls "$MAIN_WORKSPACE_DIR/templates/" | wc -l) templates"
 fi
 
@@ -143,6 +143,6 @@ echo "   Example: glm-5.2, bailian-thinking/qwen3.7-plus, etc."
 echo "4. Restart gateway:"
 echo "   openclaw gateway restart"
 echo ""
-echo "📋 Feishu scopes: workspace/main/templates/feishu-scopes.json"
+echo "📋 Feishu scopes: workspace/intelligent-learning-assistant/templates/feishu-scopes.json"
 echo "🤖 AI tool deploy prompt: docs/DEPLOY-PROMPT.md"
 echo ""

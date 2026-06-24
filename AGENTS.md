@@ -58,8 +58,8 @@ Main Agent 10 个 Skill + Audit Agent 1 个 Skill：
 | 9 | `learning-cron` | 定时任务管理（多学生隔离） |
 | 10 | `learning-feishu-sync` | 飞书知识库 + 多维表格同步 |
 
-Main Agent 的 Skill 位于 `workspace/main/skills/learning/`。
-Audit Agent 的 Skill 位于 `workspace/audit/skills/learning/`。
+Main Agent 的 Skill 位于 `workspace/intelligent-learning-assistant/skills/learning/`。
+Audit Agent 的 Skill 位于 `workspace/intelligent-learning-audit/skills/learning/`。
 
 ## 跨 Agent 调用
 
@@ -127,7 +127,7 @@ artifact: "<生成物的完整内容>"
 所有学生数据在 Main Agent 的 workspace 下：
 
 ```
-workspace/main/data/
+workspace/intelligent-learning-assistant/data/
 ├── <studentId>/
 │   ├── profile.yaml                          # 学生档案
 │   ├── goals.yaml                            # 学习目标
@@ -142,7 +142,7 @@ workspace/main/data/
 │   ├── audit/                                # 审计记录
 │   ├── reviews/                              # 复盘报告
 │   └── reports/                              # 报表
-workspace/main/templates/
+workspace/intelligent-learning-assistant/templates/
 ├── plan-schema.yaml                          # 学习计划 YAML Schema
 ├── content-template.md                       # 学习内容格式模板
 ├── session-notes-template.yaml               # Session Notes 模板

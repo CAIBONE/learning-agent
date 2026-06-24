@@ -48,14 +48,14 @@ learning-agent/
 │   ├── USAGE.md                  # 使用指南
 │   └── INTRODUCTION.md           # 项目介绍
 ├── agent/
-│   ├── main/                     # Main Agent（学吧）
-│   │   ├── agent.json            # Agent 元数据（10 skills + sessions_send）
+│   ├── intelligent-learning-assistant/    # Main Agent（学吧）
+│   │   ├── agent.json            # Agent 元数据（10 skills + sessions_send + subagents）
 │   │   └── SKILL.md              # 技能路由入口
-│   └── audit/                    # Audit Agent（审计官）
+│   └── intelligent-learning-audit/        # Audit Agent（审计官）
 │       ├── agent.json            # Agent 元数据（1 skill）
 │       └── SKILL.md              # 审计入口 + 派发协议
 └── workspace/
-    ├── main/                     # Main Agent 专属 workspace
+    ├── intelligent-learning-assistant/    # Main Agent 专属 workspace
     │   ├── IDENTITY.md           # Agent 身份定义
     │   ├── SOUL.md               # Agent 人格、教学风格、首次回复规则
     │   ├── data/                 # 学生数据（profile/progress/audit 记录）
@@ -77,7 +77,7 @@ learning-agent/
     │           ├── learning-review/
     │           ├── learning-cron/
     │           └── learning-feishu-sync/
-    └── audit/                    # Audit Agent 专属 workspace
+    └── intelligent-learning-audit/        # Audit Agent 专属 workspace
         ├── IDENTITY.md           # 审计官身份
         ├── SOUL.md               # 审计官人格
         └── skills/
@@ -123,16 +123,16 @@ bash setup.sh
 
 ```bash
 # 1. 复制 Main Agent
-cp -r agent/main/ ~/.openclaw/agents/intelligent-learning-assistant/
+cp -r agent/intelligent-learning-assistant/ ~/.openclaw/agents/intelligent-learning-assistant/
 
 # 2. 复制 Audit Agent
-cp -r agent/audit/ ~/.openclaw/agents/intelligent-learning-audit/
+cp -r agent/intelligent-learning-audit/ ~/.openclaw/agents/intelligent-learning-audit/
 
 # 3. 复制 Main workspace
-cp -r workspace/main/ ~/.openclaw/workspace-intelligent-learning-assistant/
+cp -r workspace/intelligent-learning-assistant/ ~/.openclaw/workspace-intelligent-learning-assistant/
 
 # 4. 复制 Audit workspace
-cp -r workspace/audit/ ~/.openclaw/workspace-intelligent-learning-audit/
+cp -r workspace/intelligent-learning-audit/ ~/.openclaw/workspace-intelligent-learning-audit/
 
 # 5. 合并 openclaw-config-patch.json 到 ~/.openclaw/openclaw.json
 ```
@@ -200,7 +200,7 @@ openclaw gateway restart
 
 部署完成后，在飞书对话中对 Agent 说"我想学 XXX"，Agent 会：
 1. 捕获学习目标
-2. 一次性申请飞书权限（完整 scope 清单见 `workspace/main/templates/feishu-scopes.json`）
+2. 一次性申请飞书权限（完整 scope 清单见 `workspace/intelligent-learning-assistant/templates/feishu-scopes.json`）
 3. 初始化飞书知识库空间和多维表格数据库
 4. 生成知识图谱和学习计划
 
