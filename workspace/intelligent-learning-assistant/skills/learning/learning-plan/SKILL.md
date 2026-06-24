@@ -60,6 +60,32 @@ adjustments:
 
 ## 计划生成流程
 
+### 0. 工时估算（先于排程）
+
+**核心原则：先估工作量，再映射到日历。不基于 deadline 反推填充。**
+
+```
+总工时 = Σ(各节点 estimatedMinutes)
+
+# 基础折减（从 goals.yaml 读取 baseline）
+if baseline 显示有相关基础:
+  总工时 ×= 折减系数（0.3-0.6，见 learning-goals 排程约束）
+
+实际日历天数 = 总工时 / 每日平均学习时长（分钟）
+
+# 上限保护：不超过 deadline
+if startDate + 实际日历天数 > deadline:
+  压缩每日时长或调整内容深度，使总时长 ≤ deadline
+
+# 下限提醒：如果实际远短于 deadline
+if 实际日历天数 < (deadline - startDate) × 0.3:
+  主动告知用户：
+  「按你的基础和每日学习时长，核心内容约 X 周可完成。
+   剩余时间可以：① 增加进阶内容 ② 做更深入的实战项目 ③ 提前完成后自由安排」
+  → 在计划中标注 recommendedDeadline（基于工时的实际完成日）
+  → 不人为拉长里程碑间隔来填满 deadline
+```
+
 ### 1. 路径排序
 
 - 基于知识树的前置依赖关系确定学习顺序（拓扑排序）

@@ -151,11 +151,20 @@ artifact: "<生成的完整学习内容>"
 **不传递**：生成推理过程、自适应分析结论、对话历史。
 
 审计结果处理：
-- **verdict = "passed"** → 进入第 7 步（写飞书文档）
-- **verdict = "passed_with_notes"** → 进入第 7 步，推送时附带 soft 建议标记
-- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
-- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
+- **verdict = "passed"** → 通知用户审计通过，进入第 7 步（写飞书文档）
+- **verdict = "passed_with_notes"** → 通知用户审计通过但附带建议，进入第 7 步，推送时附带 soft 建议标记
+- **verdict = "not_passed" 且 retryCount < 3** → 通知用户"审计发现问题，正在修复中"，根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
+- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示完整审计反馈，等待裁决（接受/修改/重新生成/跳过）
 - **超时或 Audit Agent 不可用** → 降级为本地审计（在同一上下文中执行检查项 1-7），记录降级事件
+
+**审计结果必须通知用户**（通过飞书消息），格式：
+```
+✅ 内容审计通过 | ⚠️ 审计通过（有建议） | 🔧 审计未通过，修复中 | ❓ 需要你的确认
+
+审计摘要：
+• 通过 N 项 / 共 M 项
+• soft 建议：（如有）
+```
 
 审计结果保存到 `data/<studentId>/audit/content-<nodeId>-<timestamp>.json`
 

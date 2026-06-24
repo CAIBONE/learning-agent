@@ -114,11 +114,13 @@ artifact: "<完整的知识树 YAML>"
 ```
 
 审计结果处理：
-- **verdict = "passed"** → 进入第 5 步
-- **verdict = "passed_with_notes"** → 进入第 5 步，展示时附带 soft 建议标记
-- **verdict = "not_passed" 且 retryCount < 3** → 根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
-- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示审计反馈，等待裁决（接受/修改/重新生成/跳过）
+- **verdict = "passed"** → 通知用户审计通过，进入第 5 步
+- **verdict = "passed_with_notes"** → 通知用户审计通过但附带建议，进入第 5 步，展示时附带 soft 建议标记
+- **verdict = "not_passed" 且 retryCount < 3** → 通知用户"审计发现问题，正在修复中"，根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
+- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示完整审计反馈，等待裁决（接受/修改/重新生成/跳过）
 - **超时或 Audit Agent 不可用** → 降级为本地审计（执行 6 步验证清单），记录降级事件
+
+**审计结果必须通知用户**（通过飞书消息），格式同 learning-content 的审计通知格式。
 
 审计结果保存到 `data/<studentId>/audit/knowledge-tree-<subjectId>-<timestamp>.json`
 

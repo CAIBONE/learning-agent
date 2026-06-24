@@ -88,11 +88,19 @@ auditType: "content"              # content | quiz | knowledge_tree | volume
 targetId: "mod-01-02"
 studentId: "<studentId>"
 artifact: "<生成物内容>"           # 最终的内容/题目/知识树 YAML
+sessionNotes:                     # 对话中产生的关键需求（可选）
+  - type: "user_feedback"
+    content: "多用电商场景举例"
+    appliesTo: "all"
+  - type: "correction"
+    content: "递归的定义应该是函数调用自身"
+    appliesTo: "node-recursion"
 ```
 
 **派发原则：**
 - Main Agent **只传生成物本身**，不传生成过程的推理
-- Audit Agent 基于 artifact 和审计标准独立判断
+- **session-notes 必须传递**：Main Agent 从 `progress/<studentId>/session-notes.yaml` 读取适用于当前 targetId 的条目（appliesTo = targetId 或 "all" 且 resolved = false），嵌入派发协议
+- Audit Agent 基于 artifact + session-notes + 自主读取的数据文件独立判断
 - 避免"喂结论"，让审计 Agent 独立判断
 
 ## Session Notes 机制

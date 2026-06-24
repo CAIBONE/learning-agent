@@ -33,7 +33,7 @@ Audit Agent 能看到的：                    Audit Agent 不能看到的：
 Main Agent 调用 Audit Agent 时，只传递：
 
 ```yaml
-auditType: "content | quiz | knowledge_tree | volume"
+auditType: "content | quiz | knowledge_tree | volume | plan"
 targetId: "<nodeId 或 subjectId>"
 studentId: "<studentId>"
 artifact: "<生成物的完整内容>"
@@ -169,6 +169,7 @@ check:
 - `learning-knowledge-tree` 生成或编辑知识树后 → Main Agent 派发审计
 - `learning-content` 生成学习内容后、写入飞书文档前 → Main Agent 派发审计
 - `learning-quiz` 生成测试题后、发送给用户前 → Main Agent 派发审计
+- `learning-plan` 生成或调整学习计划后 → Main Agent 派发审计
 - **定期触发**：每周复盘时自动执行学习量审计
 
 ---
@@ -355,6 +356,52 @@ session-notes 中有：
 
 ---
 
+## 五、学习计划审计
+
+在学习计划生成或调整后执行。重点检查排程合理性，防止"为了填满期限而人为拉长"。
+
+### 检查清单
+
+| # | 检查项 | 方法 | 通过条件 |
+|---|--------|------|---------|
+| 1 | **总工时合理性** | 读取计划中所有 session 的 estimatedMinutes 求和，与 knowledgeTree 的 total estimatedMinutes 比对 | 偏差 ≤ 20% |
+| 2 | **基础折减是否应用** | 读取 goals.yaml 的 baseline 字段，检查计划总工时是否对应有基础的用户做了折减 | 有相关基础的用户，总工时 ≤ 零基础估算值 × 0.6 |
+| 3 | **里程碑间隔合理性** | 检查相邻 milestone 之间的日历天数，对比实际工时需求 | 间隔天数 ≤ 该阶段总工时 / 每日学习时长 + 3天缓冲 |
+| 4 | **单 session 时长上限** | 检查每个 session 的 estimatedMinutes | ≤ 120 分钟 |
+| 5 | **日历是否填满期限** | 计算 (deadline - startDate) 与 (totalMinutes / dailyMinutes) 的比值 | 比值 > 2.0 时告警（计划工时远少于可用时间，存在人为拉长嫌疑） |
+| 6 | **session-notes 合规性** | 检查计划是否满足 session-notes 中的相关需求（如"本周加量"） | 所有未 resolved 的适用条目已落实 |
+
+### 执行流程
+
+```
+1. 读取学生数据文件（计划、知识树、目标、session-notes）
+2. 执行检查项 1-6
+3. 检查项 1-4 为硬指标（结构性正确性），必须全部通过
+4. 检查项 5 为软指标（告警但不阻塞）
+5. 检查项 6 为硬指标（session-notes 合规）
+6. 硬指标未通过 → 返回结果给 Main Agent，附带具体修复建议
+7. 记录 audit 结果
+```
+
+### "填满期限"检测算法
+
+```
+totalPlannedMinutes = Σ(session.estimatedMinutes for all sessions)
+dailyMinutes = plan.schedule.dailyMinutes
+actualNeededDays = totalPlannedMinutes / dailyMinutes
+calendarDays = (deadline - startDate).days
+
+ratio = calendarDays / actualNeededDays
+
+if ratio > 2.0:
+  → 软指标告警："计划工时仅占可用时间的 {1/ratio:.0%}，存在人为拉长里程碑间隔的嫌疑"
+  → 建议：告知用户实际可完成时间，询问是否增加进阶内容
+if ratio > 3.0:
+  → 硬指标不通过："计划严重拉伸（{1/ratio:.0%} 利用率），必须重新排程或增加内容"
+```
+
+---
+
 ## 审计记录格式
 
 ```json
@@ -434,6 +481,7 @@ Audit Agent 由 Main Agent 通过**跨 Agent 调用**触发，不是在同一上
 | 触发方 | 审计类型 | 触发时机 | 派发内容 |
 |--------|---------|---------|---------|
 | `learning-knowledge-tree` | 知识图谱审计 | 生成/编辑后、保存前 | 知识树 YAML |
+| `learning-plan` | 学习计划审计 | 生成/调整后 | 完整计划 YAML + goals.yaml |
 | `learning-content` | 学习内容审计 | 生成后、写飞书文档前 | 完整学习内容 |
 | `learning-quiz` | 测试题审计 | 生成后、发送用户前 | 完整题目集 |
 | `learning-review` | 学习量审计 | 每周复盘时自动触发 | subjectId |
