@@ -48,13 +48,16 @@
 > 学吧的核心任务（知识图谱审计、题目验证、内容交叉验证）依赖深度推理能力，必须配置推理模型。
 
 ```bash
+# 查看当前环境中有无推理模型
+openclaw models list
+# 或检查 openclaw.json 中 reasoning 字段
 grep -B2 -A2 '"reasoning"' ~/.openclaw/openclaw.json
 ```
 
-- ✅ 找到 `"reasoning": true` 的模型配置 → 继续
--  未找到 → 告诉用户：「学吧的知识图谱审计、题目验证、内容交叉验证等核心任务依赖深度推理能力，必须配置支持深度思考的推理模型（thinking/reasoning model）。请在 openclaw.json 中将增加支持深度思考的推理模型并设为学吧的模型。」
+- ✅ 找到 `"reasoning": true` 的模型 → 记录该模型 ID，后续设为学吧主模型
+- ❌ 未找到 → 告诉用户：「学吧的知识图谱审计、题目验证、内容交叉验证等核心任务依赖深度推理能力，必须配置支持深度思考的推理模型（thinking/reasoning model）。请在 openclaw.json 中增加一个 `"reasoning": true` 的模型并设为学吧的主模型。」
 
-请确认用户配置推理模型后再继续。
+请确认用户有可用推理模型后再继续。
 
 ### 1.4 依赖检查汇总
 
@@ -62,7 +65,7 @@ grep -B2 -A2 '"reasoning"' ~/.openclaw/openclaw.json
 |---|--------|---------|---------|
 | 1 | 飞书官方插件 | `openclaw plugins list \| grep lark` | `npx -y @larksuite/openclaw-lark install` |
 | 2 | 飞书应用 (App ID + Secret) | 用户提供 | 引导用户到 open.feishu.cn 创建 |
-| 3 | 推理模型 API | `openclaw models list` 或检查 openclaw.json | 配置模型提供商 API Key |
+| 3 | 推理模型（`reasoning: true`） | `openclaw models list` | 配置模型提供商 API Key |
 
 **所有依赖就绪后，方可进入第二步。**
 
@@ -81,32 +84,32 @@ cd learning-agent
 ### 2.2 项目文件结构
 
 ```
-learning-agent/                              # 仓库根目录
-├── setup.sh                                 # 一键部署脚本（自动完成步骤 3.1 + 3.2）
-├── openclaw-config-patch.json               # Agent 注册 + 渠道 + 绑定配置模板
+learning-agent/                                      # 仓库根目录
+├── setup.sh                                         # 一键部署脚本（自动完成步骤 3.1 + 3.2）
+├── openclaw-config-patch.json                       # Agent 注册 + 渠道 + 绑定配置模板
 ├── agent/
-│   ├── main/                                # Main Agent（学吧）
-│   │   ├── agent.json                       # Agent 元数据（ID、10 个技能、工具白名单）
-│   │   └── SKILL.md                         # 技能路由表 + 多 Agent 架构说明
-│   └── audit/                               # Audit Agent（审计官）
-│       ├── agent.json                       # Agent 元数据（ID、1 个技能）
-│       └── SKILL.md                         # 审计入口 + 派发协议
+│   ├── main/                                        # Main Agent 源文件（学吧）
+│   │   ├── agent.json                               # Agent 元数据（10 个技能、工具白名单、subagents）
+│   │   └── SKILL.md                                 # 技能路由表 + 多 Agent 架构说明
+│   └── audit/                                       # Audit Agent 源文件（审计官）
+│       ├── agent.json                               # Agent 元数据（1 个技能）
+│       └── SKILL.md                                 # 审计入口 + 派发协议
 └── workspace/
-    ├── main/                                # Main Agent 工作区
-    │   ├── IDENTITY.md                      # Agent 身份卡
-    │   ├── SOUL.md                          # Agent 人格（苏格拉底式教学 + 费曼法 + 数据驱动）
+    ├── main/                                        # Main Agent 工作区源文件
+    │   ├── IDENTITY.md                              # Agent 身份卡
+    │   ├── SOUL.md                                  # Agent 人格（苏格拉底式教学 + 费曼法 + 数据驱动）
     │   ├── templates/
-    │   │   ├── plan-schema.yaml             # 学习计划 YAML Schema
-    │   │   ├── content-template.md          # 学习内容格式模板
-    │   │   ├── message-card.json            # 飞书消息卡片模板
-    │   │   ├── feishu-scopes.json           # 飞书 OAuth 完整权限范围（180+ scope）
-    │   │   └── session-notes-template.yaml  # 会话笔记模板（跨 Agent 上下文桥接）
-    │   └── skills/learning/                 # 10 个技能模块（详见 README.md）
-    └── audit/                               # Audit Agent 工作区
-        ├── IDENTITY.md                      # 审计官身份卡
-        ├── SOUL.md                          # 审计官人格（独立、客观、严格）
+    │   │   ├── plan-schema.yaml                     # 学习计划 YAML Schema
+    │   │   ├── content-template.md                  # 学习内容格式模板
+    │   │   ├── message-card.json                    # 飞书消息卡片模板
+    │   │   ├── feishu-scopes.json                   # 飞书 OAuth 完整权限范围（180+ scope）
+    │   │   └── session-notes-template.yaml          # 会话笔记模板（跨 Agent 上下文桥接）
+    │   └── skills/learning/                         # 10 个技能模块（详见 README.md）
+    └── audit/                                       # Audit Agent 工作区源文件
+        ├── IDENTITY.md                              # 审计官身份卡
+        ├── SOUL.md                                  # 审计官人格（独立、客观、严格）
         └── skills/learning/
-            └── learning-audit/SKILL.md      # 审计规则（知识图谱/内容/题目/学习量）
+            └── learning-audit/SKILL.md              # 审计规则（知识图谱/内容/题目/学习量）
 ```
 
 ---
@@ -115,19 +118,29 @@ learning-agent/                              # 仓库根目录
 
 > 以下动作按顺序执行。可优先使用 `setup.sh` 自动完成 3.1 和 3.2。
 
-### 3.1 运行部署脚本（注册 Agent + 复制文件）
+### 3.1 运行部署脚本（创建目录 + 复制文件 + 注册 Agent）
 
 ```bash
 bash setup.sh
 ```
 
-脚本自动完成：
-- 创建 `~/.openclaw/agents/intelligent-learning-assistant/` 目录（Main Agent）
-- 创建 `~/.openclaw/agents/intelligent-learning-audit/` 目录（Audit Agent）
-- 创建 `~/.openclaw/workspace-main/` 目录（Main 工作区）
-- 创建 `~/.openclaw/workspace-audit/` 目录（Audit 工作区）
-- 复制 agent/ 和 workspace/ 文件到对应目录
-- 调用 `openclaw agents add` 注册两个 Agent
+脚本自动完成以下操作：
+
+**创建目录**（注意目标目录名与 agent ID 保持一致）：
+```
+~/.openclaw/agents/intelligent-learning-assistant/agent/    ← Main Agent 配置
+~/.openclaw/agents/intelligent-learning-audit/agent/        ← Audit Agent 配置
+~/.openclaw/workspace-intelligent-learning-assistant/       ← Main 工作区
+~/.openclaw/workspace-intelligent-learning-audit/           ← Audit 工作区
+```
+
+**复制文件**：
+- `agent/main/` → `~/.openclaw/agents/intelligent-learning-assistant/agent/`
+- `agent/audit/` → `~/.openclaw/agents/intelligent-learning-audit/agent/`
+- `workspace/main/` → `~/.openclaw/workspace-intelligent-learning-assistant/`
+- `workspace/audit/` → `~/.openclaw/workspace-intelligent-learning-audit/`
+
+**注册 Agent**：调用 `openclaw agents add` 注册两个 Agent
 
 **验证：**
 ```bash
@@ -139,7 +152,7 @@ openclaw agents list
 
 ### 3.2 合并配置到 openclaw.json
 
-> 如果 setup.sh 已自动注册，此步可跳过配置合并，但仍需手动补充飞书凭证。
+> 如果 setup.sh 已自动注册，此步可跳过配置合并，但仍需手动补充飞书凭证和模型。
 
 将 `openclaw-config-patch.json` 中的内容合并到 OpenClaw 配置（通常位于 `~/.openclaw/openclaw.json`）：
 
@@ -154,35 +167,41 @@ openclaw config merge --patch openclaw-config-patch.json
 
 **① agents.list — 追加两个 Agent 定义**
 
-```json
+```jsonc
 // Main Agent（学吧）— 10 个 skills，负责生成和交互
 {
   "id": "intelligent-learning-assistant",
   "name": "学吧",
-  "workspace": "./workspace-main",
+  "workspace": "./workspace-intelligent-learning-assistant",
   "agentDir": "./agents/intelligent-learning-assistant/agent",
-  "model": { "primary": "bailian-thinking/qwen3.7-plus" },
+  "model": { "primary": "<你的推理模型 ID>" },  // ← 替换为实际推理模型
   "skills": [ "learning-core", "learning-goals", "learning-knowledge-tree",
               "learning-plan", "learning-content", "learning-quiz",
               "learning-reports", "learning-review", "learning-cron",
               "learning-feishu-sync" ],
-  "tools": { "alsoAllow": [ "sessions_send", "cron_create", "cron_update",
-              "cron_delete", "cron_list", "web_search", "web_fetch",
-              ... 30+ 飞书工具 ... ] }
+  "tools": {
+    "subagents": {
+      "allowAgents": ["intelligent-learning-audit"]   // ← 允许调用审计 Agent
+    },
+    "alsoAllow": [ "sessions_send", "cron_create", ... 30+ 飞书工具 ... ]
+  }
 }
 
 // Audit Agent（审计官）— 1 个 skill，独立上下文审计
 {
   "id": "intelligent-learning-audit",
   "name": "学习审计 Agent",
-  "workspace": "./workspace-audit",
+  "workspace": "./workspace-intelligent-learning-audit",
   "agentDir": "./agents/intelligent-learning-audit/agent",
-  "model": { "primary": "bailian-thinking/qwen3.7-plus" },
+  "model": { "primary": "<你的推理模型 ID>" },  // ← 同样使用推理模型
   "skills": ["learning-audit"]
 }
 ```
 
-> **注意**：以上路径均相对于 `~/.openclaw/` 目录。`tools` 中不可使用 `subagents` 字段（OpenClaw schema 不支持），跨 Agent 调用通过 `sessions_send` 工具实现。
+> **注意**：
+> - 以上路径均相对于 `~/.openclaw/` 目录
+> - `model.primary` 必须使用 `reasoning: true` 的推理模型（如 `glm-5.2`、`bailian-thinking/qwen3.7-plus` 等）
+> - `tools.subagents.allowAgents` 必须包含 `intelligent-learning-audit`，否则 Main Agent 无法向 Audit Agent 派发审计任务
 
 **② channels.feishu.accounts — 追加飞书渠道账号**
 ```json
@@ -205,7 +224,31 @@ openclaw config merge --patch openclaw-config-patch.json
 }
 ```
 
-### 3.3 重启网关
+### 3.3 配置模型
+
+检查当前环境中可用的推理模型：
+
+```bash
+# 列出所有模型，找 reasoning: true 的
+openclaw models list
+# 或直接查看配置
+cat ~/.openclaw/openclaw.json | python3 -c "
+import sys,json
+c=json.load(sys.stdin)
+for p,v in c.get('models',{}).get('providers',{}).items():
+    for m in v.get('models',[]):
+        if m.get('reasoning'):
+            print(f'{p}/{m[\"id\"]}')"
+```
+
+将找到的推理模型设为两个 Agent 的主模型：
+
+```jsonc
+// 在 agents.list 中两个 agent 的条目里设置
+"model": { "primary": "<推理模型 ID>" }
+```
+
+### 3.4 重启网关
 
 ```bash
 openclaw gateway restart
@@ -213,7 +256,7 @@ openclaw gateway restart
 systemctl restart openclaw
 ```
 
-### 3.4 验证部署
+### 3.5 验证部署
 
 在飞书中找到机器人，发送：
 
@@ -264,6 +307,8 @@ systemctl restart openclaw
 
 **派发协议**：Main Agent 通过 `sessions_send` 向 Audit Agent 发送审计任务（仅传生成物 + 审计类型 + 学生 ID，不传推理过程）。Audit Agent 返回结构化审计结果（verdict: passed / passed_with_notes / not_passed / user_arbitration）。
 
+**subagents 配置**：Main Agent 的 `tools.subagents.allowAgents` 必须包含 `intelligent-learning-audit`，否则跨 Agent 调用会被拒绝。
+
 **审计失败处理**：最多重试 3 次，仍不通过则提交用户裁决。
 
 ---
@@ -276,7 +321,8 @@ systemctl restart openclaw
 |--------|---|------|
 | `streaming` | `true` | 学吧回复通常 500-5000 字，无流式输出用户需干等 10-30 秒 |
 | `uat.ownerOnly` | `false` | 学吧支持多用户，每人通过飞书 open_id 自动识别 |
-| `model.primary` | 推理模型 | 知识图谱审计、题目验证、内容交叉验证依赖深度推理，普通模型会"自己出题自己错" |
+| `model.primary` | 推理模型（`reasoning: true`） | 知识图谱审计、题目验证、内容交叉验证依赖深度推理 |
+| `tools.subagents.allowAgents` | 含 `intelligent-learning-audit` | Main Agent 需能调用 Audit Agent |
 
 ### 5.2 飞书权限
 
@@ -304,7 +350,7 @@ systemctl restart openclaw
 
 | 场景 | 推荐 | 最低要求 |
 |------|------|---------|
-| 全流程 | `bailian-thinking/qwen3.7-plus` | 推理模型 |
+| 全流程 | 当前环境中 `reasoning: true` 的模型 | 必须有推理能力 |
 | 预算有限 | 主流程用推理模型，简单任务可降级 | `learning-audit` + `learning-quiz` 必须推理模型 |
 | 不推荐 | — | qwen-turbo、gpt-4o-mini 等非推理模型 |
 
@@ -317,10 +363,12 @@ systemctl restart openclaw
 - [ ] 飞书应用已创建（向用户确认 App ID + App Secret）
 - [ ] 飞书应用权限已配置（参考 feishu-scopes.json）
 - [ ] 飞书应用已发布版本
-- [ ] 推理模型 API 已配置
+- [ ] 推理模型可用（`reasoning: true`）
 - [ ] `bash setup.sh` 执行成功
 - [ ] openclaw.json 已合并配置（appId/appSecret 已替换）
 - [ ] 两个 Agent 已注册（intelligent-learning-assistant + intelligent-learning-audit）
+- [ ] Main Agent 的 `model.primary` 已设为推理模型
+- [ ] Main Agent 的 `tools.subagents.allowAgents` 包含 `intelligent-learning-audit`
 - [ ] `streaming: true` 已设置
 - [ ] `uat.ownerOnly: false` 已设置
 - [ ] 网关已重启
@@ -329,4 +377,4 @@ systemctl restart openclaw
 
 ---
 
-*最后更新：2026-06-23*
+*最后更新：2026-06-24*

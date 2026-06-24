@@ -129,10 +129,10 @@ cp -r agent/main/ ~/.openclaw/agents/intelligent-learning-assistant/
 cp -r agent/audit/ ~/.openclaw/agents/intelligent-learning-audit/
 
 # 3. 复制 Main workspace
-cp -r workspace/main/ ~/.openclaw/workspace-main/
+cp -r workspace/main/ ~/.openclaw/workspace-intelligent-learning-assistant/
 
 # 4. 复制 Audit workspace
-cp -r workspace/audit/ ~/.openclaw/workspace-audit/
+cp -r workspace/audit/ ~/.openclaw/workspace-intelligent-learning-audit/
 
 # 5. 合并 openclaw-config-patch.json 到 ~/.openclaw/openclaw.json
 ```

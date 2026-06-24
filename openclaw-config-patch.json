@@ -5,9 +5,8 @@
       {
         "id": "intelligent-learning-assistant",
         "name": "学吧",
-        "workspace": "./workspace-main",
+        "workspace": "./workspace-intelligent-learning-assistant",
         "agentDir": "./agents/intelligent-learning-assistant/agent",
-        "model": { "primary": "bailian-thinking/qwen3.7-plus" },
         "skills": [
           "learning-core",
           "learning-goals",
@@ -21,6 +20,9 @@
           "learning-feishu-sync"
         ],
         "tools": {
+          "subagents": {
+            "allowAgents": ["intelligent-learning-audit"]
+          },
           "alsoAllow": [
             "sessions_send",
             "cron_create",
@@ -70,9 +72,8 @@
       {
         "id": "intelligent-learning-audit",
         "name": "学习审计 Agent",
-        "workspace": "./workspace-audit",
+        "workspace": "./workspace-intelligent-learning-audit",
         "agentDir": "./agents/intelligent-learning-audit/agent",
-        "model": { "primary": "bailian-thinking/qwen3.7-plus" },
         "skills": ["learning-audit"]
       }
     ]

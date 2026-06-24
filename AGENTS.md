@@ -9,7 +9,7 @@
 ```
 ┌─────────────────────────────────────────────────┐
 │              学吧 Main Agent                      │
-│  workspace: ~/.openclaw/workspace-main           │
+│  workspace: ~/.openclaw/workspace-intelligent-learning-assistant │
 │  上下文：SOUL + 路由 + 对话历史 + 学生档案          │
 │                                                   │
 │  内置 Skill：goals / knowledge-tree / plan /      │
@@ -23,7 +23,7 @@
                        ▼
          ┌──────────────────────────┐
          │   Audit Agent（独立上下文）│
-         │   workspace: ~/.openclaw/workspace-audit │
+         │   workspace: ~/.openclaw/workspace-intelligent-learning-audit │
          │   技能：learning-audit    │
          └──────────────────────────┘
 ```
