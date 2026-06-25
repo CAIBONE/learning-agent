@@ -154,7 +154,8 @@ openclaw agents list
 
 ### 3.2 合并配置到 openclaw.json
 
-> 如果 setup.sh 已自动注册，此步可跳过配置合并，但仍需手动补充飞书凭证和模型。
+> **setup.sh 已自动完成此步**（包括检测推理模型、保留飞书凭证、使用绝对路径）。
+> 如 setup.sh 已执行成功，可跳过此步。
 
 将 `openclaw-config-patch.json` 中的内容合并到 OpenClaw 配置（通常位于 `~/.openclaw/openclaw.json`）：
 
@@ -174,17 +175,16 @@ openclaw config merge --patch openclaw-config-patch.json
 {
   "id": "intelligent-learning-assistant",
   "name": "学吧",
-  "workspace": "./workspace-intelligent-learning-assistant",
-  "agentDir": "./agents/intelligent-learning-assistant/agent",
+  "workspace": "/home/<USER>/.openclaw/workspace-intelligent-learning-assistant",  // ← 使用绝对路径
+  "agentDir": "/home/<USER>/.openclaw/agents/intelligent-learning-assistant/agent",
   "model": { "primary": "<你的推理模型 ID>" },  // ← 替换为实际推理模型
   "skills": [ "learning-core", "learning-goals", "learning-knowledge-tree",
               "learning-plan", "learning-content", "learning-quiz",
               "learning-reports", "learning-review", "learning-cron",
               "learning-feishu-sync" ],
   "tools": {
-    "subagents": {
-      "allowAgents": ["intelligent-learning-audit"]   // ← 允许调用审计 Agent
-    },
+    // ⚠️ 只放 alsoAllow，不放 subagents
+    // subagents 配置在 agent.json 中，不在 openclaw.json 中！
     "alsoAllow": [ "sessions_send", "cron_create", ... 30+ 飞书工具 ... ]
   }
 }
@@ -193,17 +193,18 @@ openclaw config merge --patch openclaw-config-patch.json
 {
   "id": "intelligent-learning-audit",
   "name": "学习审计 Agent",
-  "workspace": "./workspace-intelligent-learning-audit",
-  "agentDir": "./agents/intelligent-learning-audit/agent",
+  "workspace": "/home/<USER>/.openclaw/workspace-intelligent-learning-audit",  // ← 使用绝对路径
+  "agentDir": "/home/<USER>/.openclaw/agents/intelligent-learning-audit/agent",
   "model": { "primary": "<你的推理模型 ID>" },  // ← 同样使用推理模型
   "skills": ["learning-audit"]
 }
 ```
 
-> **注意**：
-> - 以上路径均相对于 `~/.openclaw/` 目录
-> - `model.primary` 必须使用 `reasoning: true` 的推理模型（如 `glm-5.2`、`bailian-thinking/qwen3.7-plus` 等）
-> - `tools.subagents.allowAgents` 必须包含 `intelligent-learning-audit`，否则 Main Agent 无法向 Audit Agent 派发审计任务
+> **⚠️ 关键注意事项**：
+> - **workspace/agentDir 使用绝对路径**：相对路径会被 `openclaw agents add` 从不同 cwd 解析，导致路径错误
+> - **`tools` 中只放 `alsoAllow`，不放 `subagents`**：`subagents.allowAgents` 配置在 `agent.json` 中（由 setup.sh 部署到 `~/.openclaw/agents/<id>/agent/agent.json`），放在 `openclaw.json` 的 tools 中会导致配置校验失败（`Invalid input`）
+> - **`model.primary` 必须使用 `reasoning: true` 的推理模型**（如 `glm-5.2`、`bailian-thinking/qwen3.7-plus` 等）
+> - **保留已有飞书凭证**：合并时不要覆盖 `intelligent-learning` 账号中已有的 `appId`/`appSecret`
 
 **② channels.feishu.accounts — 追加飞书渠道账号**
 ```json
@@ -311,7 +312,7 @@ systemctl restart openclaw
 
 **审计通知**：**每个审计结果都必须通过飞书通知用户**，不可静默处理。passed 时告知"审计通过"，not_passed 重试时告知"正在修复"，user_arbitration 时展示完整反馈。
 
-**subagents 配置**：Main Agent 的 `tools.subagents.allowAgents` 必须包含 `intelligent-learning-audit`，否则跨 Agent 调用会被拒绝。
+**subagents 配置**：Main Agent 的跨 Agent 调用权限在 `agent.json` 中配置（`tools.subagents.allowAgents` 包含 `intelligent-learning-audit`），**不要**在 `openclaw.json` 的 tools 中设置 subagents（会导致配置校验失败）。
 
 **审计失败处理**：最多重试 3 次，仍不通过则提交用户裁决。
 
@@ -321,12 +322,13 @@ systemctl restart openclaw
 
 ### 5.1 必须配置项
 
-| 配置项 | 值 | 原因 |
-|--------|---|------|
-| `streaming` | `true` | 学吧回复通常 500-5000 字，无流式输出用户需干等 10-30 秒 |
-| `uat.ownerOnly` | `false` | 学吧支持多用户，每人通过飞书 open_id 自动识别 |
-| `model.primary` | 推理模型（`reasoning: true`） | 知识图谱审计、题目验证、内容交叉验证依赖深度推理 |
-| `tools.subagents.allowAgents` | 含 `intelligent-learning-audit` | Main Agent 需能调用 Audit Agent |
+| 配置项 | 值 | 位置 | 原因 |
+|--------|---|------|------|
+| `streaming` | `true` | `openclaw.json` channels | 学吧回复通常 500-5000 字，无流式输出用户需干等 10-30 秒 |
+| `uat.ownerOnly` | `false` | `openclaw.json` channels | 学吧支持多用户，每人通过飞书 open_id 自动识别 |
+| `model.primary` | 推理模型（`reasoning: true`） | `openclaw.json` agents | 知识图谱审计、题目验证、内容交叉验证依赖深度推理 |
+| `tools.subagents.allowAgents` | 含 `intelligent-learning-audit` | `agent.json`（非 openclaw.json） | Main Agent 需能调用 Audit Agent。**注意：此配置在 agent.json 中，放在 openclaw.json 会导致校验失败** |
+| `workspace`/`agentDir` | 绝对路径 | `openclaw.json` agents | 相对路径会被 `openclaw agents add` 从不同 cwd 解析，导致路径错误 |
 
 ### 5.2 飞书权限
 
@@ -368,17 +370,18 @@ systemctl restart openclaw
 - [ ] 飞书应用权限已配置（参考 feishu-scopes.json）
 - [ ] 飞书应用已发布版本
 - [ ] 推理模型可用（`reasoning: true`）
-- [ ] `bash setup.sh` 执行成功
-- [ ] openclaw.json 已合并配置（appId/appSecret 已替换）
-- [ ] 两个 Agent 已注册（intelligent-learning-assistant + intelligent-learning-audit）
+- [ ] `bash setup.sh` 执行成功（自动完成：文件复制、Agent 注册、配置合并、模型设置、网关重启）
+- [ ] openclaw.json 中 Agent 的 `workspace`/`agentDir` 为**绝对路径**
+- [ ] openclaw.json 中 Agent 的 `tools` 只有 `alsoAllow`，**没有 `subagents`**
+- [ ] agent.json 中 `tools.subagents.allowAgents` 包含 `intelligent-learning-audit`
 - [ ] Main Agent 的 `model.primary` 已设为推理模型
-- [ ] Main Agent 的 `tools.subagents.allowAgents` 包含 `intelligent-learning-audit`
-- [ ] `streaming: true` 已设置
+- [ ] `streaming: true` 已设置（intelligent-learning 渠道）
 - [ ] `uat.ownerOnly: false` 已设置
-- [ ] 网关已重启
+- [ ] 网关已重启（`openclaw gateway restart`）
+- [ ] `openclaw config validate` 无错误
 - [ ] 飞书发消息"你好"测试通过
 - [ ] 创建学习项目后飞书知识库 + 多维表格自动初始化
 
 ---
 
-*最后更新：2026-06-24*
+*最后更新：2026-06-25*

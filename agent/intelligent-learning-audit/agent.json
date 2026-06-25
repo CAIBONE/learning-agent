@@ -2,7 +2,7 @@
   "id": "intelligent-learning-audit",
   "name": "学习审计 Agent",
   "description": "Independent Audit Agent - 独立审计知识图谱、学习内容、测试题的质量，在隔离上下文中运行，确保审计客观性",
-  "workspace": "../../workspace-intelligent-learning-audit",
+  "workspace": "../../../workspace-intelligent-learning-audit",
   "skills": [
     "learning-audit"
   ]

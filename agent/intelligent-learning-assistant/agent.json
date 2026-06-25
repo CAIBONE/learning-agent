@@ -2,7 +2,7 @@
   "id": "intelligent-learning-assistant",
   "name": "智能学习助手",
   "description": "Intelligent Learning Assistant - 帮助规划学习任务、生成学习内容、测验学习成果、生成复盘报表。审计任务派发给独立的 Audit Agent 处理。",
-  "workspace": "../../workspace-intelligent-learning-assistant",
+  "workspace": "../../../workspace-intelligent-learning-assistant",
   "tools": {
     "subagents": {
       "allowAgents": ["intelligent-learning-audit"]
