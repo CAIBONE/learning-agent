@@ -94,13 +94,30 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 
 **将知识树派发给独立的 Audit Agent 进行审计。**
 
-**审计前告知用户**："开始审计，预计需要 5-10 分钟，请稍候"
+> ⚠️ **强制前置条件**：知识树 YAML 文件**必须已保存到 `data/<studentId>/` 目录**后，才可派发审计。派发前必须用 `read` 工具验证文件存在且内容非空。
+> 否则审计官读取文件时会因文件不存在而失败。
+
+#### 飞书推送说明（重要）
+
+知识树生成流程耗时较长（含审计），首次 dispatch 回复飞书后，后续输出会路由到 webchat（Web UI），用户在飞书上看不到。
+
+**所有需要用户看到的进展，必须通过 `feishu_im_user_message` 主动推送到飞书**。用户 open_id 从 `data/mapping.yaml` 获取。
+
+推送节点：
+1. 审计开始："🔍 开始知识树审计，预计 5-10 分钟"
+2. 每轮审计结果："✅ 审计通过" 或 "🔧 审计发现问题，正在修复（第 X/3 次）"
+3. 最终知识树展示（第 5 步的内容）
+4. 思维导图（第 5.5 步的链接）
+
+#### 审计派发
+
+**审计前通过飞书推送**："开始审计，预计需要 5-10 分钟，请稍候"
 
 调用方式（同步阻塞）：
 ```json
 sessions_send({
   "agentId": "intelligent-learning-audit",
-  "message": "审计类型: knowledge_tree\n目标: <subjectId>\n学生: <studentId>\n生成物:\n<完整知识树 YAML>",
+  "message": "审计类型: knowledge_tree\n目标: <subjectId>\n学生: <studentId>\n生成物文件路径:\n- <绝对路径1>\n- <绝对路径2>\n\n请读取上述文件进行完整审计。",
   "timeoutSeconds": 600
 })
 ```
@@ -110,17 +127,17 @@ sessions_send({
 auditType: "knowledge_tree"
 targetId: "<subjectId>"
 studentId: "<studentId>"
-artifact: "<完整的知识树 YAML>"
+artifactPaths:
+  - "/home/xuxi/.openclaw/workspace-intelligent-learning-assistant/data/<studentId>/<subject1>.yaml"
+  - "/home/xuxi/.openclaw/workspace-intelligent-learning-assistant/data/<studentId>/<subject2>.yaml"
 ```
 
 审计结果处理：
-- **verdict = "passed"** → 通知用户审计通过，进入第 5 步
-- **verdict = "passed_with_notes"** → 通知用户审计通过但附带建议，进入第 5 步，展示时附带 soft 建议标记
-- **verdict = "not_passed" 且 retryCount < 3** → 通知用户"审计发现问题，正在修复中"，根据 fixAction 修复（仅 fixableByMain: true 的项），重新 sessions_send 审计
-- **verdict = "user_arbitration"（重试 3 次后）** → 向用户展示完整审计反馈，等待裁决（接受/修改/重新生成/跳过）
-- **超时或 Audit Agent 不可用** → 降级为本地审计（执行 6 步验证清单），记录降级事件
-
-**审计结果必须通知用户**（通过飞书消息），格式同 learning-content 的审计通知格式。
+- **verdict = "passed"** → 飞书推送"✅ 审计通过"，进入第 5 步
+- **verdict = "passed_with_notes"** → 飞书推送"✅ 审计通过，有建议：..."，进入第 5 步
+- **verdict = "not_passed" 且 retryCount < 3** → 飞书推送"🔧 审计发现问题，正在修复（第 X/3 次）"，根据 fixAction 修复后重新 sessions_send 审计
+- **verdict = "user_arbitration"（重试 3 次后）** → 飞书推送完整审计反馈，等待裁决（接受/修改/重新生成/跳过）
+- **超时或 Audit Agent 不可用** → 飞书推送"⚠️ 审计降级为本地验证"，降级为本地审计（执行 6 步验证清单），记录降级事件
 
 审计结果保存到 `data/<studentId>/audit/knowledge-tree-<subjectId>-<timestamp>.json`
 
@@ -141,6 +158,45 @@ artifact: "<完整的知识树 YAML>"
 共 X 个模块，Y 个知识点，预计 Z 小时
 ✅ 验证通过 | 审计通过
 ```
+
+**通过飞书推送此展示内容**（使用 `feishu_im_user_message`）。
+
+### 第 5.5 步：生成思维导图（Markmap 格式）
+
+知识树确认后，自动生成 **Markmap** 格式的思维导图，方便用户可视化知识体系。
+
+**生成规则**：
+- 输出路径：`data/<studentId>/<subjectId>-mindmap.md`
+- 格式：Markdown heading 层级结构
+  - `#` = 科目名称
+  - `##` = 模块（level-0 节点）
+  - `###` = 章节/知识点（level-1 节点）
+  - `####` = 子知识点（level-2 节点，如有）
+- 每个节点标注预计时长，格式：`节点名 (Xmin)`
+
+**示例输出**：
+```markdown
+# 经济基础知识
+
+## 第一部分：经济学基础 (3200min)
+
+### 市场经济体制 (800min)
+### 经济运行与调节 (600min)
+### 宏观经济分析与政策 (600min)
+
+## 第二部分：财政 (2600min)
+
+### 财政职能与支出 (500min)
+### 财政收入与税收 (700min)
+...
+```
+
+**使用方式**：
+- 用户可将 Markdown 内容粘贴到 [markmap.js.org](https://markmap.js.org/repl) 生成可视化思维导图
+- VS Code 安装 Markmap 插件后可直接预览
+- 后续可升级为自动生成 HTML 文件
+
+**通过飞书推送思维导图文件路径**。
 
 ### 第 6 步：自动创建飞书学科目录
 
