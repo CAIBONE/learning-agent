@@ -271,6 +271,8 @@ c['bindings'].append({
 # --- Top-level tools: allow cross-agent sessions_send ---
 c.setdefault('tools', {})
 c['tools']['sessions'] = {'visibility': 'all'}
+c['tools']['agentToAgent'] = {'enabled': True}
+print("  ✓ tools.agentToAgent.enabled=true (cross-agent sends)")
 print("  ✓ tools.sessions.visibility=all (cross-agent calls)")
 
 with open(CONFIG, 'w') as f:
