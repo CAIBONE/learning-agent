@@ -207,10 +207,33 @@ check:
 
 ### 节点内容准确性验证说明
 
-抽检策略（控制成本，不全文搜索）：
-- 抽检范围：所有 level-0 节点 + 随机 30% 的 level-1 节点
-- 验证方法：取节点的 title + description 关键词联网搜索，对比前 3 条结果的定义
-- 判断标准：核心概念定义与权威来源无矛盾（允许表述差异，不允许事实错误）
+**确定性抽样策略**（控制成本 + 多轮覆盖）：
+
+**不要用 LLM 主观判断"随机"选择节点**——LLM 会反复选同一批节点。使用以下确定性算法：
+
+```python
+import hashlib
+
+# 1. 收集所有 level-1 节点，按 nodeId 排序
+level1_nodes = sorted([n for n in all_nodes if n['level'] == 1], key=lambda n: n['nodeId'])
+
+# 2. 用 hash 生成确定性 seed（每轮审计 round 递增）
+audit_round = retryCount + 1  # 第 1 次审计 round=1，重试 round=2,3...
+seed_str = f"{studentId}:{subjectId}:{audit_round}"
+seed = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
+
+# 3. 取 seed % 3 == index % 3 的节点（约 33%），每轮覆盖不同节点
+selected = [n for i, n in enumerate(level1_nodes) if (seed + i) % 3 == 0]
+
+# 4. 最终抽检范围 = 所有 level-0 节点 + selected level-1 节点
+```
+
+- **所有 level-0 节点**：每次都查（核心模块，定义错误影响全局）
+- **level-1 节点**：每轮约 33%，3 轮审计后所有节点至少被覆盖一次
+- **结果可复现**：相同 studentId + subjectId + round → 相同抽样
+
+验证方法：取节点的 title + description 关键词联网搜索，对比前 3 条结果的定义
+判断标准：核心概念定义与权威来源无矛盾（允许表述差异，不允许事实错误）
 
 ---
 
