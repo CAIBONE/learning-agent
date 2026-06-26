@@ -495,6 +495,32 @@ if ratio > 3.0:
 | `not_passed` | 有 hard 指标未通过 | 按 fixAction 修复，重新派发（retryCount < 3） |
 | `user_arbitration` | 重试 3 次后仍有未通过项 | 提交用户裁决 |
 
+### 质量量化评分（内容审计专用）
+
+学习内容审计时，除了 pass/fail 判定，还必须输出量化评分。**评分纳入 verdict 判定**：
+
+```yaml
+qualityScores:
+  knowledgeCoverage: 0.85    # 知识点覆盖密度（覆盖了多少考纲要求的知识点）
+  difficultyFit: 0.90        # 难度适配度（与学生当前掌握度的匹配）
+  coherence: 0.75            # 前后连贯性（与前后节课内容的衔接）
+  depth: 0.80                # 深度达标度（是否达到最低字数/小节要求）
+  overall: 0.83              # 综合分（四项加权平均）
+```
+
+**量化评分与 verdict 的关系**：
+- `overall >= 0.7` 且**无单项 < 0.5** → 不影响 verdict（由 hard/soft 指标决定）
+- `overall >= 0.5` 但有单项 < 0.5 → verdict 最高为 `passed_with_notes`，标注需改进的维度
+- `overall < 0.5` → verdict 强制为 `not_passed`，即使 hard 指标全部通过
+
+**评分说明**：
+- `knowledgeCoverage`：对照知识树节点 description，检查教材覆盖了多少要求的知识点
+- `difficultyFit`：对照 `data/<studentId>/mastery.json`，检查教材难度是否匹配学生当前水平
+- `coherence`：对照 `data/<studentId>/content-summaries.jsonl`，检查与前后节课的衔接程度
+- `depth`：对照 `templates/content-template.md` 的字数和小节要求
+
+量化评分持久化到 `data/<studentId>/quality-scores.jsonl`，供后续教学策略调整。
+
 ## 与 Main Agent 的协作
 
 ### 调用方式

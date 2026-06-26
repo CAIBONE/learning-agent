@@ -123,6 +123,18 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 > 内容格式模板见 `templates/content-template.md`，必须包含其中全部小节。
 
+> 🚨 **强制：生成前读取前置节点摘要**
+>
+> 生成新节点教材前，**必须**执行以下步骤：
+> 1. 读取 `data/<studentId>/content-summaries.jsonl`（如存在）
+> 2. 筛选当前节点 `prerequisites`（前置节点）对应的摘要
+> 3. 筛选当前节点 `nextNodes`（后续节点）对应的摘要（如有）
+> 4. 将摘要注入教材生成上下文：
+>    - **开头衔接**：用 1-2 句话回顾前置节点核心概念（"上一节我们学了 X..."）
+>    - **知识递进**：基于前置节点知识深入，不重复已讲内容
+>    - **结尾铺垫**：为后续节点埋引子（"下一节我们将基于 X 来探讨 Y"）
+> 5. 如果 `content-summaries.jsonl` 不存在或无匹配摘要，正常生成即可（首节课无需衔接）
+
 **不是搜索结果的简单拼接，而是基于检索素材重新创作的完整学习材料。**
 
 生成原则：准确性优先 → 结构化 → 渐进式 → 举例说明 → 联系实际 → 语言简洁 → 足够长
@@ -214,6 +226,22 @@ artifact: "<生成的完整学习内容>"
 1. 保存内容到 `data/<studentId>/content/<nodeId>-<seq>.md`
 2. 追加记录到 `data/<studentId>/content-log.jsonl`
 3. 更新计划中该 session 的 status 为 "delivered"
+4. **生成内容摘要**，追加到 `data/<studentId>/content-summaries.jsonl`：
+
+```json
+{
+  "nodeId": "<nodeId>",
+  "subjectId": "<subjectId>",
+  "title": "<节点标题>",
+  "summary": "<100-200 字摘要，概括本节核心概念和关键知识点>",
+  "keyConcepts": ["概念1", "概念2", "概念3"],
+  "prerequisites": ["前置nodeId1", "前置nodeId2"],
+  "nextNodes": ["后续nodeId1"],
+  "generatedAt": "<ISO timestamp>"
+}
+```
+
+此摘要将在后续节点生成教材时被读取（第 4 步），确保跨节课的知识连贯性。
 
 ## 飞书文档创建失败处理
 
