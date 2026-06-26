@@ -97,6 +97,13 @@ for f in AGENTS.md IDENTITY.md SOUL.md; do
     fi
 done
 
+# Step 4c: Create symlinks for Audit Agent → Main Agent shared resources
+echo "[4c/9] Creating Audit Agent symlinks to Main Agent data/templates..."
+ln -sf "$MAIN_WORKSPACE_DIR/data" "$AUDIT_WORKSPACE_DIR/data"
+ln -sf "$MAIN_WORKSPACE_DIR/templates" "$AUDIT_WORKSPACE_DIR/templates"
+echo "  ✓ data → $MAIN_WORKSPACE_DIR/data"
+echo "  ✓ templates → $MAIN_WORKSPACE_DIR/templates"
+
 # Step 5: Copy skills
 echo "[5/9] Copying skills..."
 # Main Agent skills (10 skills)
