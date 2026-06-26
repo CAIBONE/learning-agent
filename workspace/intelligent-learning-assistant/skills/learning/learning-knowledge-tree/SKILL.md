@@ -13,10 +13,10 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 
 ## 数据路径约定
 
-- 知识树文件：`knowledge-trees/<studentId>/<subjectId>.yaml`
-- 目标文件：`learning-profiles/<studentId>/goals.yaml`
+- 知识树文件：`data/<studentId>/<subjectId>.yaml`
+- 目标文件：`data/<studentId>/goals.yaml`
 - Schema 验证：`schemas/knowledge-tree.schema.json`
-- **对话笔记**：`progress/<studentId>/session-notes.yaml`
+- **对话笔记**：`data/<studentId>/session-notes.yaml`
 - `<studentId>` 从对话上下文或 profile 路径推断
 
 ## 知识树生成流程
@@ -146,7 +146,7 @@ artifact: "<完整的知识树 YAML>"
 
 知识树确认后，**必须立即在飞书创建学科目录结构**，不要等到首次推送内容时才创建。
 
-**前提条件**：读取 `learning-profiles/<studentId>/feishu-mapping.yaml`，确认已授权且知识库根目录已创建。
+**前提条件**：读取 `data/<studentId>/feishu-mapping.yaml`，确认已授权且知识库根目录已创建。
 
 **创建流程**：
 
@@ -167,7 +167,7 @@ artifact: "<完整的知识树 YAML>"
 4. **保存映射关系**
 
 ```yaml
-# learning-profiles/<studentId>/feishu-mapping.yaml 追加
+# data/<studentId>/feishu-mapping.yaml 追加
 subjects:
   economic-basics:
     folderToken: "fldxxxxxxxxxxxxx"
@@ -231,7 +231,7 @@ nodes:
 ## 知识树编辑
 
 当用户要求修改知识树时：
-1. 读取现有 `knowledge-trees/<studentId>/<subject>.yaml`
+1. 读取现有 `data/<studentId>/<subject>.yaml`
 2. 执行修改（添加/删除/调整节点）
 3. **重新执行强制验证清单**（第 3 步全部 6 项）
 4. 更新 version 和 updatedAt
@@ -244,4 +244,4 @@ nodes:
 1. 读取知识树
 2. 读取目标（deadline、dailyMinutes）
 3. 计算每个节点的排程
-4. 生成 `learning-profiles/<studentId>/plans/<subject>.yaml`
+4. 生成 `data/<studentId>/plans/<subject>.yaml`

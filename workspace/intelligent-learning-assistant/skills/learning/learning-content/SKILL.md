@@ -9,7 +9,7 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 1. **必须尝试写飞书文档。** 任何学习材料都必须先写入飞书文档，再通过消息卡片推送文档链接。
    **失败回退：** 如果飞书文档创建失败（授权问题、网络问题等），必须：
-   a) 将完整内容保存到本地 `progress/<studentId>/content/<nodeId>-<seq>.md`
+   a) 将完整内容保存到本地 `data/<studentId>/content/<nodeId>-<seq>.md`
    b) 通过聊天发送简短通知（NOT 完整内容），包含：节点信息、内容摘要、本地保存路径
    c) 通知用户文档创建失败，授权后将自动补推
    d) **禁止重试超过2次**，避免超时
@@ -68,12 +68,12 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 ## 数据路径约定
 
-- 计划：`learning-profiles/<studentId>/plans/<subjectId>.yaml`
-- 知识树：`knowledge-trees/<studentId>/<subjectId>.yaml`
-- 掌握度：`progress/<studentId>/mastery.json`
-- 内容日志：`progress/<studentId>/content-log.jsonl`
-- 内容文件：`progress/<studentId>/content/<nodeId>-<seq>.md`
-- **对话笔记**：`progress/<studentId>/session-notes.yaml`
+- 计划：`data/<studentId>/plans/<subjectId>.yaml`
+- 知识树：`data/<studentId>/<subjectId>.yaml`
+- 掌握度：`data/<studentId>/mastery.json`
+- 内容日志：`data/<studentId>/content-log.jsonl`
+- 内容文件：`data/<studentId>/content/<nodeId>-<seq>.md`
+- **对话笔记**：`data/<studentId>/session-notes.yaml`
 - 内容模板：`templates/content-template.md`
 - 卡片模板：`templates/message-card.json`
 
@@ -193,8 +193,8 @@ artifact: "<生成的完整学习内容>"
 
 ### 第 10 步：保存本地副本
 
-1. 保存内容到 `progress/<studentId>/content/<nodeId>-<seq>.md`
-2. 追加记录到 `progress/<studentId>/content-log.jsonl`
+1. 保存内容到 `data/<studentId>/content/<nodeId>-<seq>.md`
+2. 追加记录到 `data/<studentId>/content-log.jsonl`
 3. 更新计划中该 session 的 status 为 "delivered"
 
 ## 飞书文档创建失败处理

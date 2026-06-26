@@ -15,12 +15,12 @@ description: "Generate quiz questions, dispatch to independent Audit Agent for q
 
 ## 数据路径约定
 
-- 知识树：`knowledge-trees/<studentId>/<subjectId>.yaml`
-- 掌握度：`progress/<studentId>/mastery.json`
-- 测验日志：`progress/<studentId>/quiz-results.jsonl`
-- 错题本：`progress/<studentId>/wrong-answers.jsonl`
-- 目标：`learning-profiles/<studentId>/goals.yaml`
-- **对话笔记**：`progress/<studentId>/session-notes.yaml`
+- 知识树：`data/<studentId>/<subjectId>.yaml`
+- 掌握度：`data/<studentId>/mastery.json`
+- 测验日志：`data/<studentId>/quiz-results.jsonl`
+- 错题本：`data/<studentId>/wrong-answers.jsonl`
+- 目标：`data/<studentId>/goals.yaml`
+- **对话笔记**：`data/<studentId>/session-notes.yaml`
 
 ## 测验类型
 

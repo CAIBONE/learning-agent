@@ -20,15 +20,15 @@ description: "Independent learning review and retrospective module. Generates da
 
 ## 数据路径
 
-- 掌握度：`progress/<studentId>/mastery.json`
-- 测验日志：`progress/<studentId>/quiz-results.jsonl`
-- 内容日志：`progress/<studentId>/content-log.jsonl`
-- 错题本：`progress/<studentId>/wrong-answers.jsonl`
-- 计划：`learning-profiles/<studentId>/plans/<subjectId>.yaml`
-- 目标：`learning-profiles/<studentId>/goals.yaml`
-- 知识树：`knowledge-trees/<studentId>/<subjectId>.yaml`
+- 掌握度：`data/<studentId>/mastery.json`
+- 测验日志：`data/<studentId>/quiz-results.jsonl`
+- 内容日志：`data/<studentId>/content-log.jsonl`
+- 错题本：`data/<studentId>/wrong-answers.jsonl`
+- 计划：`data/<studentId>/plans/<subjectId>.yaml`
+- 目标：`data/<studentId>/goals.yaml`
+- 知识树：`data/<studentId>/<subjectId>.yaml`
 - 飞书多维表格：`feishu_bitable`（如已同步）
-- 复盘输出：`progress/<studentId>/reviews/<period>.md`
+- 复盘输出：`data/<studentId>/reviews/<period>.md`
 
 ## 复盘流程
 

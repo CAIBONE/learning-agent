@@ -27,12 +27,12 @@ description: "Generate learning reports using Feishu Bitable dashboards and char
 - 错题本表 → 薄弱点分析
 
 **备选数据源：本地文件**（飞书未同步时降级）
-- `progress/<studentId>/mastery.json`
-- `progress/<studentId>/quiz-results.jsonl`
-- `progress/<studentId>/content-log.jsonl`
-- `progress/<studentId>/wrong-answers.jsonl`
-- `learning-profiles/<studentId>/plans/<subjectId>.yaml`
-- `knowledge-trees/<studentId>/<subjectId>.yaml`
+- `data/<studentId>/mastery.json`
+- `data/<studentId>/quiz-results.jsonl`
+- `data/<studentId>/content-log.jsonl`
+- `data/<studentId>/wrong-answers.jsonl`
+- `data/<studentId>/plans/<subjectId>.yaml`
+- `data/<studentId>/<subjectId>.yaml`
 
 ## 报表生成流程
 
@@ -121,7 +121,7 @@ Python基础：85%  (+10%)
 ```
 1. 将完整报表写入飞书文档（复盘报表目录下）
 2. 通过消息卡片推送：摘要文本 + 仪表盘直链按钮
-3. 本地保存副本到 progress/<studentId>/reports/<period>.md
+3. 本地保存副本到 data/<studentId>/reports/<period>.md
 4. 注意：多维表格图表由数据自动驱动刷新，无需手动更新
 ```
 

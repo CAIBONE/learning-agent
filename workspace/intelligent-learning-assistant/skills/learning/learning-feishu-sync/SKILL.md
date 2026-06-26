@@ -81,7 +81,7 @@ description: "Sync learning profiles, knowledge trees, plans, and progress data 
 1. 使用 feishu_drive_file 检查根目录
 2. 创建「学习空间」知识库（如不存在）
 3. 记录 root_folder_token
-4. 保存映射关系到 learning-profiles/<studentId>/feishu-mapping.yaml
+4. 保存映射关系到 data/<studentId>/feishu-mapping.yaml
 ```
 
 ### 第 3 步：创建多维表格
@@ -141,7 +141,7 @@ description: "Sync learning profiles, knowledge trees, plans, and progress data 
 ### 第 5 步：保存映射关系
 
 ```yaml
-# learning-profiles/<studentId>/feishu-mapping.yaml
+# data/<studentId>/feishu-mapping.yaml
 studentId: "<studentId>"
 createdAt: "2026-06-14"
 authorizationStatus: "authorized"   # authorized / expired / refreshing

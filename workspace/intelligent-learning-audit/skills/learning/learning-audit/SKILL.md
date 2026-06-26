@@ -47,14 +47,14 @@ Audit Agent 收到派发后，**自主读取**以下文件：
 
 | 文件路径 | 用途 |
 |---------|------|
-| `progress/<studentId>/session-notes.yaml` | 对话中产生的用户需求、纠错、上下文（**关键！**） |
-| `progress/<studentId>/mastery.json` | 各节点掌握度 |
-| `progress/<studentId>/content-log.jsonl` | 内容推送日志，可计算学习速度/效率比 |
-| `progress/<studentId>/quiz-results.jsonl` | 历史测验记录，用于去重和错题分析 |
-| `progress/<studentId>/wrong-answers.jsonl` | 错题本 |
-| `knowledge-trees/<studentId>/<subjectId>.yaml` | 知识树结构 |
-| `learning-profiles/<studentId>/plans/<subjectId>.yaml` | 学习计划（了解当前节点、冲刺模式等） |
-| `learning-profiles/<studentId>/goals.yaml` | 学习目标（有标准型/无标准型、里程碑） |
+| `data/<studentId>/session-notes.yaml` | 对话中产生的用户需求、纠错、上下文（**关键！**） |
+| `data/<studentId>/mastery.json` | 各节点掌握度 |
+| `data/<studentId>/content-log.jsonl` | 内容推送日志，可计算学习速度/效率比 |
+| `data/<studentId>/quiz-results.jsonl` | 历史测验记录，用于去重和错题分析 |
+| `data/<studentId>/wrong-answers.jsonl` | 错题本 |
+| `data/<studentId>/knowledge-tree-<subjectId>.yaml` | 知识树结构 |
+| `data/<studentId>/plans/<subjectId>.yaml` | 学习计划（了解当前节点、冲刺模式等） |
+| `data/<studentId>/goals.yaml` | 学习目标（有标准型/无标准型、里程碑） |
 | `templates/content-template.md` | 内容模板（用于检查结构完整性） |
 | `schemas/knowledge-tree.schema.json` | 知识树 Schema（用于结构验证） |
 
@@ -341,7 +341,7 @@ session-notes 中有：
 5. 任一告警 → 记录告警项 → 生成调整建议
 6. 检查项 2（覆盖率 < 70%）→ 自动检索缺失模块 → 建议补充到知识树
 7. 检查项 3-4 告警 → 建议调整学习计划（增加每日时长 / 延长截止日期）
-8. 记录 audit 结果到 progress/<studentId>/audit/volume-<subjectId>-<timestamp>.json
+8. 记录 audit 结果到 data/<studentId>/audit/volume-<subjectId>-<timestamp>.json
 ```
 
 ### 知识树覆盖率计算方法

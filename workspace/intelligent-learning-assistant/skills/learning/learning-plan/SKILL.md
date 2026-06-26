@@ -14,11 +14,11 @@ description: "Generate and dynamically adjust learning plans from knowledge tree
 
 ## 数据路径约定
 
-- 知识树：`knowledge-trees/<studentId>/<subjectId>.yaml`
-- 目标：`learning-profiles/<studentId>/goals.yaml`
-- 计划输出：`learning-profiles/<studentId>/plans/<subjectId>.yaml`
+- 知识树：`data/<studentId>/<subjectId>.yaml`
+- 目标：`data/<studentId>/goals.yaml`
+- 计划输出：`data/<studentId>/plans/<subjectId>.yaml`
 - 计划 Schema 示例：`templates/plan-schema.yaml`
-- 掌握度：`progress/<studentId>/mastery.json`
+- 掌握度：`data/<studentId>/mastery.json`
 
 ---
 

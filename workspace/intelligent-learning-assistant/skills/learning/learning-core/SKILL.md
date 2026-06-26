@@ -14,7 +14,7 @@ description: "Core intelligent learning assistant skill. Routing logic, multi-ag
 | 步骤 | 调用 Skill | 职责 |
 |------|-----------|------|
 | 目标设定 | `learning-goals` | 对话式捕获目标 + 飞书权限预检，写入 goals.yaml |
-| 知识树生成 | `learning-knowledge-tree` | 从目标生成知识树 + 语义验证，写入 knowledge-trees/ |
+| 知识树生成 | `learning-knowledge-tree` | 从目标生成知识树 + 语义验证，写入 data/ |
 | 学习计划 | `learning-plan` | 从知识树+目标生成计划 + 动态调整，写入 plans/ |
 | 内容推送 | `learning-content` | 生成教材 + 写飞书文档 + 消息卡片推送 |
 | 测验评估 | `learning-quiz` | 生成测验题 + 交互式答题 + 评分 |
@@ -99,7 +99,7 @@ sessionNotes:                     # 对话中产生的关键需求（可选）
 
 **派发原则：**
 - Main Agent **只传生成物本身**，不传生成过程的推理
-- **session-notes 必须传递**：Main Agent 从 `progress/<studentId>/session-notes.yaml` 读取适用于当前 targetId 的条目（appliesTo = targetId 或 "all" 且 resolved = false），嵌入派发协议
+- **session-notes 必须传递**：Main Agent 从 `data/<studentId>/session-notes.yaml` 读取适用于当前 targetId 的条目（appliesTo = targetId 或 "all" 且 resolved = false），嵌入派发协议
 - Audit Agent 基于 artifact + session-notes + 自主读取的数据文件独立判断
 - 避免"喂结论"，让审计 Agent 独立判断
 
@@ -121,7 +121,7 @@ sessionNotes:                     # 对话中产生的关键需求（可选）
 
 > 模板见 `templates/session-notes-template.yaml`
 
-路径：`progress/<studentId>/session-notes.yaml`
+路径：`data/<studentId>/session-notes.yaml`
 
 ### 写入时机
 
@@ -165,22 +165,22 @@ sessionNotes:                     # 对话中产生的关键需求（可选）
 ### 3. 数据持久化
 
 **本地存储（primary）：**
-- 知识图谱 → `knowledge-trees/<studentId>/<subjectId>.yaml`
-- 学习计划 → `learning-profiles/<studentId>/plans/<subjectId>.yaml`
-- 掌握度 → `progress/<studentId>/mastery.json`
-- 测验结果 → `progress/<studentId>/quiz-results.jsonl`
-- 内容日志 → `progress/<studentId>/content-log.jsonl`
-- 错题本 → `progress/<studentId>/wrong-answers.jsonl`
-- **对话笔记** → `progress/<studentId>/session-notes.yaml`
-- 审计记录 → `progress/<studentId>/audit/<type>-<targetId>-<timestamp>.json`
-- 复盘报告 → `progress/<studentId>/reviews/<period>.md`
-- 报表 → `progress/<studentId>/reports/<period>.md`
+- 知识图谱 → `data/<studentId>/<subjectId>.yaml`
+- 学习计划 → `data/<studentId>/plans/<subjectId>.yaml`
+- 掌握度 → `data/<studentId>/mastery.json`
+- 测验结果 → `data/<studentId>/quiz-results.jsonl`
+- 内容日志 → `data/<studentId>/content-log.jsonl`
+- 错题本 → `data/<studentId>/wrong-answers.jsonl`
+- **对话笔记** → `data/<studentId>/session-notes.yaml`
+- 审计记录 → `data/<studentId>/audit/<type>-<targetId>-<timestamp>.json`
+- 复盘报告 → `data/<studentId>/reviews/<period>.md`
+- 报表 → `data/<studentId>/reports/<period>.md`
 
 **飞书同步（secondary / backup）：**
 - 飞书知识库 → 学习档案、知识图谱、学习内容文档
 - 飞书多维表格 → 过程数据库（知识节点表/学习记录表/测验记录表/错题本表/掌握度追踪表）
 - 飞书文档 → 报表、复盘报告
-- 映射关系 → `learning-profiles/<studentId>/feishu-mapping.yaml`
+- 映射关系 → `data/<studentId>/feishu-mapping.yaml`
 
 ### 4. 主动推送而非被动等待
 - 按学习计划主动推送学习内容
@@ -205,7 +205,7 @@ sessionNotes:                     # 对话中产生的关键需求（可选）
 
 ```
 studentId 确定优先级：
-1. 查映射表 `learning-profiles/mapping.yaml` 中的 feishuOpenId → studentId
+1. 查映射表 `data/mapping.yaml` 中的 feishuOpenId → studentId
 2. 飞书消息中的 open_id → 若映射表中存在则复用已有 studentId
 3. 对话上下文中已有的 studentId
 4. 新用户 → 创建新 profile（guid 格式）→ 写入映射表
@@ -213,7 +213,7 @@ studentId 确定优先级：
 
 ### 映射表格式
 
-`learning-profiles/mapping.yaml`：
+`data/mapping.yaml`：
 
 ```yaml
 mappings:

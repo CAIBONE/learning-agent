@@ -282,7 +282,7 @@ goals:
 | **作品提交** | 创造类 | "提交你做的 Dashboard / 项目 / 方案" |
 | **录音/录像** | 表演/语言类 | "录一段 3 分钟英文自我介绍" |
 
-验收结果写入 `progress/<studentId>/milestone-results.jsonl`：
+验收结果写入 `data/<studentId>/milestone-results.jsonl`：
 ```json
 {
   "milestoneId": "m1",
@@ -302,16 +302,23 @@ goals:
 
 > **核心原则：一次性申请全部权限，不随用随申请。**
 
-检查该学生是否已有 `learning-profiles/<studentId>/feishu-mapping.yaml`：
+读取 `data/<studentId>/feishu-mapping.yaml`，检查 `authorizationStatus` 字段：
 
-**如果不存在 → 执行一次性授权流程：**
+| `authorizationStatus` | 处理 |
+|------------------------|------|
+| `"authorized"` | **跳过授权**，仅检查 token 是否过期，过期则尝试刷新 |
+| `"pending"` 或文件不存在 | **执行一次性授权流程**（下方步骤 1-6） |
+
+> ⚠️ **重要**：文件存在 ≠ 授权完成。`authorizationStatus: "pending"` 表示用户尚未完成 OAuth 授权，必须重新发起授权请求。
+
+**一次性授权流程：**
 
 1. 调用 `feishu_oauth` 检查当前 token 是否有效
 2. 读取 `templates/feishu-scopes.json` 获取完整权限范围列表（tenant + user 共 180+ scope）
 3. 通过 `feishu_oauth_batch_auth` 一次性提交全部 scope，发送授权链接
 4. 引导用户完成 OAuth 授权
 5. 授权成功后，调用 `learning-feishu-sync` 初始化飞书空间结构
-6. 保存 `feishu-mapping.yaml`（含 `authorizationStatus: "authorized"`、`authorizedScopes` 列表、`authorizedAt` 时间戳）
+6. 更新 `data/<studentId>/feishu-mapping.yaml`（设 `authorizationStatus: "authorized"`、写入 `authorizedScopes` 列表、`authorizedAt` 时间戳）
 
 **权限范围分类说明（完整清单见 `templates/feishu-scopes.json`）：**
 
@@ -333,7 +340,7 @@ goals:
 | 任务 | `task:*`（user scope） | 学习任务管理（user scope） |
 | 搜索 | `search:*`（user scope） | 文档/消息搜索（user scope） |
 
-**如果已存在 → 跳过。** 仅检查 token 是否过期，过期则尝试刷新。
+**授权完成后**：`data/<studentId>/feishu-mapping.yaml` 的 `authorizationStatus` 更新为 `"authorized"`，后续检查直接跳过。
 
 ### 第 5 步：更新学生档案
 
