@@ -1,5 +1,5 @@
 {
-  "_comment": "合并此文件到 ~/.openclaw/openclaw.json。所有相对路径基于 ~/.openclaw/ 目录。替换 YOUR_APP_ID 和 YOUR_APP_SECRET 为实际飞书凭证。注意：tools 中只放 alsoAllow，不放 subagents（subagents 在 agent.json 中配置）。",
+  "_comment": "合并此文件到 ~/.openclaw/openclaw.json。所有相对路径基于 ~/.openclaw/ 目录。替换 YOUR_APP_ID 和 YOUR_APP_SECRET 为实际飞书凭证。注意：tools 中只放 alsoAllow，不放 subagents（subagents 在 agent.json 中配置）。 顶层 tools.sessions.visibility=all 允许跨 Agent sessions_send 调用。",
   "agents": {
     "list": [
       {
@@ -71,7 +71,9 @@
         "name": "学习审计 Agent",
         "workspace": "./workspace-intelligent-learning-audit",
         "agentDir": "./agents/intelligent-learning-audit/agent",
-        "skills": ["learning-audit"]
+        "skills": [
+          "learning-audit"
+        ]
       }
     ]
   },
@@ -97,6 +99,11 @@
           }
         }
       }
+    }
+  },
+  "tools": {
+    "sessions": {
+      "visibility": "all"
     }
   }
 }

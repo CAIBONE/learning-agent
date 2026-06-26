@@ -328,6 +328,7 @@ systemctl restart openclaw
 | `uat.ownerOnly` | `false` | `openclaw.json` channels | 学吧支持多用户，每人通过飞书 open_id 自动识别 |
 | `model.primary` | 推理模型（`reasoning: true`） | `openclaw.json` agents | 知识图谱审计、题目验证、内容交叉验证依赖深度推理 |
 | `tools.subagents.allowAgents` | 含 `intelligent-learning-audit` | `agent.json`（非 openclaw.json） | Main Agent 需能调用 Audit Agent。**注意：此配置在 agent.json 中，放在 openclaw.json 会导致校验失败** |
+| `tools.sessions.visibility` | `all` | `openclaw.json` **顶层** tools | 允许 `sessions_send` 跨 Agent 调用。**必须在顶层 tools 中设置，放在 agent 的 tools 中会导致校验失败** |
 | `workspace`/`agentDir` | 绝对路径 | `openclaw.json` agents | 相对路径会被 `openclaw agents add` 从不同 cwd 解析，导致路径错误 |
 
 ### 5.2 飞书权限

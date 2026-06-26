@@ -268,6 +268,11 @@ c['bindings'].append({
     "match": {"channel": "feishu", "accountId": "intelligent-learning"}
 })
 
+# --- Top-level tools: allow cross-agent sessions_send ---
+c.setdefault('tools', {})
+c['tools']['sessions'] = {'visibility': 'all'}
+print("  ✓ tools.sessions.visibility=all (cross-agent calls)")
+
 with open(CONFIG, 'w') as f:
     json.dump(c, f, indent=2, ensure_ascii=False)
 print("  ✓ openclaw.json saved")
