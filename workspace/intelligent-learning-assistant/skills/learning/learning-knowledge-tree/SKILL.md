@@ -58,6 +58,38 @@ description: "Generate, edit, and manage knowledge trees and frameworks for any 
 - 最多 4 层，避免过深
 - 每个节点标注 prerequisites（前置依赖）和 estimatedMinutes（预计学习分钟）
 
+> 🚨 **YAML 生成方式（强制）**
+>
+> **不要使用 `write` 工具直接写大型 YAML 文件**（超过 500 行时容易被截断）。
+> 使用 Python 脚本生成并写入文件：
+>
+> ```python
+> import yaml
+>
+> tree = {
+>     'subjectId': '<subjectId>',
+>     'studentId': '<studentId>',
+>     'title': '<科目名称>',
+>     'nodes': [
+>         {
+>             'nodeId': 'mod-01',
+>             'title': '模块名称',
+>             'description': '模块简介',
+>             'level': 0,
+>             'prerequisites': [],
+>             'estimatedMinutes': 120,
+>             'children': [...]
+>         },
+>         ...
+>     ]
+> }
+>
+> with open('data/<studentId>/<subjectId>.yaml', 'w') as f:
+>     yaml.dump(tree, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+> ```
+>
+> 好处：Python yaml.dump 保证格式正确、不会截断、自动计算 totalNodes/estimatedTotalMinutes。
+
 ### 第 3 步：强制验证清单（生成后必须逐项执行，不通过则不可保存）
 
 #### Step 1：JSON Schema 结构验证
@@ -316,3 +348,13 @@ nodes:
 2. 读取目标（deadline、dailyMinutes）
 3. 计算每个节点的排程
 4. 生成 `data/<studentId>/plans/<subject>.yaml`
+
+> 🚨 **Session 拆分（强制）**
+>
+> 知识树流程（生成 + 验证 + 审计）非常消耗 token。为防止后续教材生成阶段因上下文过长而丢失流程，知识树确认后必须：
+>
+> 1. 通过飞书告知用户："知识树已完成，接下来进入学习计划阶段"
+> 2. 学习计划生成完成后，**再次告知用户**："学习计划已生成。首次学习内容将通过定时任务在明天 9:00 推送。你也可以随时说'开始学习'来提前开始。"
+> 3. **不要在同一个 session 中继续生成教材内容**。教材生成由 cron 定时任务触发（新 session），或由用户下次说"开始学习"时触发（新 session）。
+>
+> **原因**：单次 session 超过 100 行后，模型容易丢失 SKILL 中定义的流程步骤（如审计），导致走捷径跳过关键步骤。

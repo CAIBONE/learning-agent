@@ -5,6 +5,24 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 
 # Learning Content - 学习内容生成与推送
 
+> 🚨 **强制流程（不可跳过任何步骤）**
+>
+> ```
+> 1. 读取 learning-content SKILL（必须在生成任何内容之前）
+> 2. 联网检索 + 生成完整教材（2000-4500 字/节）
+> 3. 保存到 data/<studentId>/content/<nodeId>-<seq>.md
+> 4. 记录到 content-log.jsonl
+> 5. 派发审计 (sessions_send → intelligent-learning-audit, auditType: content)
+> 6. 审计通过后才可写入飞书文档
+> 7. 通过消息卡片推送文档链接
+> ```
+>
+> **绝对禁止**：
+> - 跳过审计直接写飞书文档
+> - 写少于 2000 字的"概要"代替完整教材
+> - 在没读 SKILL 的情况下生成内容
+> - 在审计未通过时写入飞书文档
+
 ## 核心原则（强制）
 
 1. **必须尝试写飞书文档。** 任何学习材料都必须先写入飞书文档，再通过消息卡片推送文档链接。
