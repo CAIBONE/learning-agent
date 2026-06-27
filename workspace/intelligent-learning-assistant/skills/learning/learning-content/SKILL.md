@@ -22,6 +22,27 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 > - 写少于 2000 字的"概要"代替完整教材
 > - 在没读 SKILL 的情况下生成内容
 > - 在审计未通过时写入飞书文档
+> - **使用 `message` 工具发送学习内容**（`message` 工具在 cron session 中可能使用错误的身份发送消息）
+> - **使用 `sessions_spawn` 生成教材内容**（subagent 不会执行审计流程）
+
+## 飞书投递规则（cron session 特别注意）
+
+> 🔴 **cron 触发的 session 与用户主动发起的 session 有不同权限**：
+>
+> | 操作 | 用户 session | cron session | 替代方案 |
+> |------|-------------|-------------|---------|
+> | `feishu_create_doc` | ✅ | ❌ need_user_authorization | 保存本地 .md 文件，发送文件路径 |
+> | `feishu_im_user_message` | ✅ | ✅ | **必须使用此工具发送消息** |
+> | `feishu_oauth_batch_auth` | ✅ | ❌ 无 senderOpenId | 不可在 cron 中重新授权 |
+> | `message` | ⚠️ | 🔴 **身份可能错误** | **绝对禁止使用** |
+>
+> **cron session 的投递流程**：
+> 1. 生成教材 → 保存到 `data/<studentId>/content/` 本地文件
+> 2. 派发审计 → sessions_send（审计官可正常读取文件）
+> 3. 审计通过 → 用 `feishu_im_user_message` 发送消息给用户，内容包括：
+>    - 学习节点标题和摘要
+>    - 本地文件路径
+>    - （如已创建飞书文档）飞书文档链接
 
 ## 核心原则（强制）
 

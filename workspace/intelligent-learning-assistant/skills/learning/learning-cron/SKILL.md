@@ -9,6 +9,24 @@ description: "Manage cron jobs for learning automation with multi-student isolat
 
 所有学习自动化定时任务的统一管理模块。支持**多学生隔离**，每个学生的 cron 任务独立运行。
 
+## 🚨 Cron 任务投递配置（强制）
+
+创建 cron 任务时，**必须**设置 delivery 配置以确保结果能送达用户：
+
+```json
+{
+  "delivery": {
+    "mode": "announce",
+    "channel": "feishu",
+    "target": "<用户的 feishu open_id>"
+  }
+}
+```
+
+**从 `data/<studentId>/feishu-mapping.yaml` 中读取 `feishuOpenId` 作为 target。**
+
+**绝对禁止**：`delivery.mode = "none"`（这会导致 cron 结果丢失，用户收不到任何推送）。
+
 ## 触发条件
 
 - 学习计划生成后 → 批量创建 cron 任务

@@ -13,6 +13,8 @@
 3. **先保存再审计**：生成物必须先写入 `data/` 目录，再派发审计。审计官通过文件路径读取完整内容。
 4. **先审计再推送**：审计通过后才可写入飞书文档或发送给用户。审计未通过时不可推送。
 5. **所有内容通过飞书推送**：知识树展示、教材、思维导图等用户可见内容必须通过 `feishu_im_user_message` 发送。dispatch reply 会路由到 webchat，用户飞书收不到。
+6. **禁止使用 `message` 工具发送学习内容**：`message` 工具在 cron session 中可能使用错误的身份发送消息。必须使用 `feishu_im_user_message`。
+7. **禁止使用 `sessions_spawn` 生成教材内容**：subagent 不会执行审计流程，导致教材跳过审计。教材必须在当前 session 中直接生成。
 
 ## 双 Agent 架构
 
