@@ -24,6 +24,18 @@ description: "Retrieve, generate, audit, and push learning content per knowledge
 > - 在审计未通过时写入飞书文档
 > - **使用 `message` 工具发送学习内容**（`message` 工具在 cron session 中可能使用错误的身份发送消息）
 > - **使用 `sessions_spawn` 生成教材内容**（subagent 不会执行审计流程）
+> - **审计未通过时直接推送内容**（即使是 cron 触发的实时生成，也必须先审计再推送）
+
+## Cron 触发时的内容生成流程
+
+> 当 cron 任务触发学习内容推送时，**必须**遵循完整流程：
+>
+> 1. 检查 `data/<studentId>/content/` 是否有已审计的 ready 内容（预生成场景）
+> 2. 如有 ready 内容 → 直接通过 `feishu_im_user_message` 推送
+> 3. 如无 ready 内容 → 生成教材 → 保存到 content/ → **派发审计** → 审计通过后推送
+> 4. 审计未通过 → 修复后重新审计（最多 3 次）→ 仍不通过则推送时附带审计提示
+>
+> **绝对禁止**：cron 触发时跳过审计直接推送内容。
 
 ## 飞书投递规则（cron session 特别注意）
 

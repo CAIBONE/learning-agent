@@ -44,6 +44,51 @@ description: "Manage cron jobs for learning automation with multi-student isolat
 >
 > 用户确认后才可创建 cron 任务。**禁止在用户不知情的情况下自动创建。**
 
+## 可选：预生成全部内容
+
+在用户确认推送时间后、创建 cron 任务前，**询问**：
+
+> "是否需要现在就预生成全部学习内容？预生成后每次推送的内容都经过审计，质量更有保证。
+> 预生成大约需要 1-3 小时（131 个知识点，每个需生成+审计）。
+> 如果选择不预生成，学习内容将在每天推送时实时生成（约 5-10 分钟/节）。"
+
+### 用户选择"是"时的分批生成方案
+
+> ⚠️ **不能在一个 session 里完成**（78 分钟就 compaction 丢失上下文了）
+
+**步骤**：
+1. 先创建推送 cron 任务（确保推送不中断）
+2. 创建进度文件 `data/<studentId>/content-progress.json`：
+   ```json
+   {
+     "total": 131,
+     "completed": [],
+     "failed": [],
+     "batchSize": 5,
+     "startedAt": "2026-06-28T13:00:00+08:00"
+   }
+   ```
+3. 创建 cron 任务 `learning-pregenerate`：每 30 分钟触发一批
+   - 读取进度文件，取下一批 5 个未完成的节点
+   - 生成 → 保存到 content/ → 派发审计 → 标记 completed
+   - 更新进度文件
+   - 飞书通知进度："已预生成 15/131"
+   - 全部完成后飞书通知"预生成完毕"并禁用自身 cron
+4. Cron 推送优先用已审计的 ready 内容，未 ready 的实时生成
+5. 任何一批失败都不阻塞后续批次——失败节点记入 failed 列表，最后统一重试
+
+**可靠性保障**：
+- 每批独立 session，一个崩溃不影响其他
+- 进度文件持久化，重启后从断点继续
+- 审计失败有 3 次重试，超过则记入 failed 列表
+- 用户可随时说"查看预生成进度"
+
+### 用户选择"否"时
+
+- 直接创建推送 cron 任务
+- 学习内容在每次 cron 触发时实时生成
+- **但 cron 触发时，生成内容后必须派发审计，审计通过后才推送**（见 learning-content SKILL）
+
 ## Cron 任务命名规范（强制）
 
 **命名格式**：`learning-<type>-<studentId>-<subjectId>`
